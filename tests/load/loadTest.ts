@@ -13,6 +13,7 @@ import os from 'node:os';
 import { performance } from 'node:perf_hooks';
 import {
   DEFAULT_SETTINGS,
+  PROTOCOL_VERSION,
   type Ack,
   type CommandPayload,
   type CommandType,
@@ -134,7 +135,7 @@ class Bot {
  */
 function connectBot(baseUrl: string, roomCode: string, role: 'host' | 'player', token: string, roomId: string, name: string): Promise<Bot> {
   const socket = io(baseUrl, {
-    auth: { protocolVersion: 1, roomCode, role, token, clientInstanceId: randomUUID(), takeover: false },
+    auth: { protocolVersion: PROTOCOL_VERSION, roomCode, role, token, clientInstanceId: randomUUID(), takeover: false },
     transports: ['websocket'],
     reconnection: false,
     forceNew: true,

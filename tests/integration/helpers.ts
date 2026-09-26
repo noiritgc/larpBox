@@ -3,6 +3,7 @@ import {
   DEFAULT_SETTINGS,
   HostViewSchema,
   PlayerViewSchema,
+  PROTOCOL_VERSION,
   type Ack,
   type ApiError,
   type AvatarId,
@@ -194,7 +195,7 @@ export function connect(
 ): Promise<TestClient> {
   const socket = io(server.baseUrl, {
     auth: {
-      protocolVersion: 1,
+      protocolVersion: PROTOCOL_VERSION,
       roomCode: auth.roomCode,
       role: auth.role,
       token: auth.token,

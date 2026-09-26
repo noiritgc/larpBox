@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DEFAULT_SETTINGS, type Phase } from '@larpbox/shared';
+import { DEFAULT_SETTINGS, PROTOCOL_VERSION, type Phase } from '@larpbox/shared';
 import { describe, expect, it } from 'vitest';
 import { HEADLINES } from '../content/headlines.js';
 import { loadPromptPack } from '../content/loadPrompts.js';
@@ -200,7 +200,7 @@ describe('lobby', () => {
     h.clock.advance(1);
     expect(h.entry(room).room.players.has(ghost.id)).toBe(false);
     expectGameError(
-      () => h.engine.authenticate({ protocolVersion: 1, roomCode: room.code, role: 'player', token: ghost.token, clientInstanceId: randomUUID(), takeover: false }),
+      () => h.engine.authenticate({ protocolVersion: PROTOCOL_VERSION, roomCode: room.code, role: 'player', token: ghost.token, clientInstanceId: randomUUID(), takeover: false }),
       'UNAUTHORIZED',
     );
   });
@@ -665,11 +665,12 @@ describe('sessions', () => {
     const h = new EngineHarness();
     const room = h.lobby(3);
     const other = h.createRoom();
-    const base = { protocolVersion: 1, clientInstanceId: randomUUID(), takeover: false } as const;
+    const base = { protocolVersion: PROTOCOL_VERSION, clientInstanceId: randomUUID(), takeover: false } as const;
     expectGameError(() => h.engine.authenticate({ ...base, roomCode: room.code, role: 'player', token: room.hostToken }), 'FORBIDDEN');
     expectGameError(() => h.engine.authenticate({ ...base, roomCode: room.code, role: 'player', token: 'x'.repeat(43) }), 'UNAUTHORIZED');
     expectGameError(() => h.engine.authenticate({ ...base, roomCode: other.code, role: 'player', token: room.players[0]!.token }), 'UNAUTHORIZED');
-    expectGameError(() => h.engine.authenticate({ ...base, protocolVersion: 2, roomCode: room.code, role: 'host', token: room.hostToken }), 'PROTOCOL_MISMATCH');
+    // A page loaded before a deploy that changed the protocol.
+    expectGameError(() => h.engine.authenticate({ ...base, protocolVersion: PROTOCOL_VERSION - 1, roomCode: room.code, role: 'host', token: room.hostToken }), 'PROTOCOL_MISMATCH');
     const ok = h.engine.authenticate({ ...base, roomCode: room.code, role: 'host', token: room.hostToken });
     expect(ok.session.role).toBe('host');
   });
@@ -849,7 +850,7 @@ describe('rematch and prompt reuse', () => {
     for (const player of entry.room.players.values()) expect(player).toMatchObject({ score: 0, ready: false });
     expect(entry.room.code).toBe(room.code);
     expectGameError(
-      () => h.engine.authenticate({ protocolVersion: 1, roomCode: room.code, role: 'player', token: dropped.token, clientInstanceId: randomUUID(), takeover: false }),
+      () => h.engine.authenticate({ protocolVersion: PROTOCOL_VERSION, roomCode: room.code, role: 'player', token: dropped.token, clientInstanceId: randomUUID(), takeover: false }),
       'UNAUTHORIZED',
     );
   });
@@ -898,7 +899,7 @@ describe('room lifetime', () => {
     expect(h.publisher.closed.at(-1)).toMatchObject({ roomId: room.roomId, payload: { reason: 'EXPIRED' } });
     expect(h.clock.pendingTimerCount()).toBe(0);
     expectGameError(
-      () => h.engine.authenticate({ protocolVersion: 1, roomCode: room.code, role: 'host', token: room.hostToken, clientInstanceId: randomUUID(), takeover: false }),
+      () => h.engine.authenticate({ protocolVersion: PROTOCOL_VERSION, roomCode: room.code, role: 'host', token: room.hostToken, clientInstanceId: randomUUID(), takeover: false }),
       'ROOM_ENDED',
     );
     // The code stays tombstoned for ten minutes, then reads as unknown.

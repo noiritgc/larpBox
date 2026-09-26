@@ -272,8 +272,8 @@ Requested by the team after playing the deployed build:
 | `npm run typecheck` | exit 0 (shared, server, web, web config, tests) after the playtest changes, and at each of the seven playtest commits on its own |
 | `npm run lint` | exit 0, likewise at each playtest commit |
 | `npx vitest run` | 17 files, 243 tests passed (192 at milestone 6, 197 after the Render changes); every playtest commit passes on its own |
-| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 23 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.4 min, after the playtest changes |
-| `npx tsx tests/load/loadTest.ts` | passed after the playtest changes: 10 × 8-player Standard games with one post each (4 post-offs per round) in 63.9 s, ack p50 3.5 ms, p95 20.4 ms, max 42.4 ms, 0 failures, 0 rooms or timers left (milestone 6, two posts each: p95 37.6 ms) |
+| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 23 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.7 min, after the playtest changes and the protocol bump |
+| `npx tsx tests/load/loadTest.ts` | passed after the playtest changes and the protocol bump: 10 × 8-player Standard games with one post each (4 post-offs per round) in 64.0 s, ack p50 5.0 ms, p95 19.7 ms, max 24.3 ms, 0 failures, 0 rooms or timers left (milestone 6, two posts each: p95 37.6 ms) |
 | `node scripts/capture-gallery.mjs` | 43 scenarios × 2 sizes each (7 new: sit-out intros, one-post writing, judging, urgent guess and endorse), no page errors, no overflow, TV post text ≥ 24px |
 | Public pages (landing, host setup, join, help) at 1440×900 and 390×844 | no horizontal overflow; screenshots reviewed |
 | Production runtime smoke + SIGTERM | passed (see Milestone 6) |
@@ -349,6 +349,9 @@ Requested by the team after playing the deployed build:
 - The landing page adds sections below the spec's hero, and the wordmark is the team's logo image.
 - 16 avatars (4 x 4 grid) instead of eight, and headlines are drawn at random from 32 per player
   instead of being fixed by seat.
+- `PROTOCOL_VERSION` is 2 (the spec shows 1): settings, views and commands changed shape with the
+  playtest changes, so a page loaded before a deploy is told "This page is out of date. Reload to
+  continue." instead of failing to read the new snapshots.
 
 ## Known limitations
 

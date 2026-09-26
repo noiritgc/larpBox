@@ -2,6 +2,7 @@ import {
   DEFAULT_SETTINGS,
   HostViewSchema,
   PlayerViewSchema,
+  PROTOCOL_VERSION,
   takeGraphemes,
   type HostScreen,
   type HostView,
@@ -107,7 +108,7 @@ interface Common {
 
 function base(kind: PhaseView['name'], common: Common) {
   return {
-    protocolVersion: 1 as const,
+    protocolVersion: PROTOCOL_VERSION,
     bootId: id(1),
     roomId: id(2),
     roomCode: 'KPRT',

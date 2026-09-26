@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DEFAULT_SETTINGS, type CreateRoomResponse, type JoinRoomResponse, type RoomPreview } from '@larpbox/shared';
+import { DEFAULT_SETTINGS, PROTOCOL_VERSION, type CreateRoomResponse, type JoinRoomResponse, type RoomPreview } from '@larpbox/shared';
 import { afterEach, describe, expect, it } from 'vitest';
 import { api, createRoom, joinRoom, startServer, type TestServer } from './helpers.js';
 
@@ -14,7 +14,7 @@ describe('HTTP bootstrap API', () => {
     server = await startServer();
     const { status, body } = await api<{ ok: boolean; bootId: string; protocolVersion: number }>(server, 'GET', '/api/health');
     expect(status).toBe(200);
-    expect(body).toMatchObject({ ok: true, protocolVersion: 1, bootId: server.service.bootId });
+    expect(body).toMatchObject({ ok: true, protocolVersion: PROTOCOL_VERSION, bootId: server.service.bootId });
   });
 
   it('creates a room with a real join URL and host credential, idempotently', async () => {
