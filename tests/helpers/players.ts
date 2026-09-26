@@ -23,10 +23,16 @@ export function watchErrors(page: Page, label: string): void {
   page.on('pageerror', (error) => pageErrors.push(`${label}: ${error.message}`));
 }
 
-export async function hostRoom(
-  browser: Browser,
-  options: { quick?: boolean; pack?: 'Mixed' | 'Everyday' | 'Campus & Work'; viewport?: { width: number; height: number } } = {},
-): Promise<HostHandle> {
+export interface HostOptions {
+  quick?: boolean;
+  pack?: 'Mixed' | 'Everyday' | 'Campus & Work';
+  writingSeconds?: 90 | 120 | 180;
+  guessSeconds?: 20 | 30;
+  endorseSeconds?: 20 | 30;
+  viewport?: { width: number; height: number };
+}
+
+export async function hostRoom(browser: Browser, options: HostOptions = {}): Promise<HostHandle> {
   const context = await browser.newContext({ viewport: options.viewport ?? TV.viewport });
   const page = await context.newPage();
   watchErrors(page, 'host');
@@ -35,6 +41,15 @@ export async function hostRoom(
   await expect(page).toHaveURL(/\/host\/new$/);
   if (options.quick) await page.getByRole('radio', { name: 'Quick: 1 round' }).click();
   if (options.pack) await page.getByRole('radio', { name: options.pack }).click();
+  if (options.writingSeconds) {
+    await page.getByRole('radiogroup', { name: 'Writing time per round' }).getByRole('radio', { name: `${options.writingSeconds}s` }).click();
+  }
+  if (options.guessSeconds) {
+    await page.getByRole('radiogroup', { name: 'Fact-guess time' }).getByRole('radio', { name: `${options.guessSeconds}s` }).click();
+  }
+  if (options.endorseSeconds) {
+    await page.getByRole('radiogroup', { name: 'Endorse time' }).getByRole('radio', { name: `${options.endorseSeconds}s` }).click();
+  }
   await page.getByTestId('create-room').click();
   await expect(page).toHaveURL(/\/host\/[A-Z]{4}$/);
   const code = (await page.getByTestId('room-code').textContent())?.trim() ?? '';
@@ -163,4 +178,37 @@ export async function playerBot(player: PlayerHandle, plan: BotPlan = {}, maxMs 
 export async function closeAll(host: HostHandle | null, players: PlayerHandle[]): Promise<void> {
   await host?.context.close();
   await Promise.all(players.map((player) => player.context.close()));
+}
+
+/** The phone showing a given duel role right now (reader or writer), by what its screen says. */
+export async function findByRole(players: PlayerHandle[], role: 'reader' | 'writer', phase: 'guess' | 'endorse'): Promise<PlayerHandle> {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    for (const player of players) {
+      const readerMarker = phase === 'guess' ? 'lock-guess' : 'lock-endorsement';
+      const isReader = await player.page.getByTestId(readerMarker).isVisible().catch(() => false);
+      if (role === 'reader' && isReader) return player;
+      if (role === 'writer' && !isReader) {
+        const writerText = phase === 'guess' ? 'You already know.' : 'The truth is out.';
+        if (await player.page.getByText(writerText).isVisible().catch(() => false)) return player;
+      }
+    }
+    await players[0]?.page.waitForTimeout(100);
+  }
+  throw new Error(`no ${role} found`);
+}
+
+/** Locks both posts on every phone as fast as possible. */
+export async function writeAll(players: PlayerHandle[], text = (player: PlayerHandle, tab: number) => `${player.name} is humbled to announce milestone ${tab}. Grateful!`): Promise<void> {
+  await Promise.all(
+    players.map(async (player) => {
+      for (let tab = 1; tab <= 2; tab += 1) {
+        await expect(player.page.getByTestId('composer')).toBeVisible();
+        await player.page.getByTestId('composer').fill(text(player, tab));
+        await player.page.getByTestId('lock-post').click();
+        if (tab === 1) await player.page.getByRole('button', { name: 'Write your other post' }).click();
+      }
+      // Either this phone waits for the others, or the last lock already ended writing.
+      await expect(player.page.getByTestId('composer')).toHaveCount(0);
+    }),
+  );
 }
