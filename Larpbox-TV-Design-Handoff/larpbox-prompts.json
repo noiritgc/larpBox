@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 1,
+  "packId": "larpbox-core-v1",
+  "prompts": [
+    {
+      "id": "everyday-toilet-roll",
+      "category": "everyday",
+      "truth": "You replaced an empty toilet-paper roll.",
+      "facts": [
+        "There was one empty roll.",
+        "You installed one fresh roll in your own bathroom."
+      ],
+      "boundaries": [
+        "No employer, customers, or team were involved."
+      ],
+      "distractors": [
+        "You refilled a soap dispenser.",
+        "You changed a light bulb.",
+        "You replaced a kitchen trash bag."
+      ]
+    },
+    {
+      "id": "everyday-cereal",
+      "category": "everyday",
+      "truth": "You poured cereal and milk into a bowl.",
+      "facts": [
+        "You prepared one bowl for yourself.",
+        "You used store-bought cereal and milk."
+      ],
+      "boundaries": [
+        "You did not cook, invent a recipe, or serve customers."
+      ],
+      "distractors": [
+        "You made a cup of instant coffee.",
+        "You heated leftover pasta.",
+        "You packed a sandwich for lunch."
+      ]
+    },
+    {
+      "id": "everyday-trash",
+      "category": "everyday",
+      "truth": "You took one bag of household trash outside.",
+      "facts": [
+        "You tied up one full bag.",
+        "You carried it to the outdoor bin."
+      ],
+      "boundaries": [
+        "You did not organize a cleanup or manage anyone else."
+      ],
+      "distractors": [
+        "You washed a pile of dishes.",
+        "You sorted a drawer of cables.",
+        "You returned empty bottles to a store."
+      ]
+    },
+    {
+      "id": "everyday-leftovers",
+      "category": "everyday",
+      "truth": "You reheated yesterday's dinner in a microwave.",
+      "facts": [
+        "The meal was already cooked.",
+        "You heated one portion and ate it yourself."
+      ],
+      "boundaries": [
+        "You did not develop a cooking technique or launch a food business."
+      ],
+      "distractors": [
+        "You cooked dinner from fresh ingredients.",
+        "You ordered a takeaway meal.",
+        "You defrosted bread for breakfast."
+      ]
+    },
+    {
+      "id": "everyday-bus",
+      "category": "everyday",
+      "truth": "You missed your bus and walked home.",
+      "facts": [
+        "The bus left before you reached the stop.",
+        "You walked the remaining journey home."
+      ],
+      "boundaries": [
+        "Walking was the fallback, not an advance plan.",
+        "Do not invent a distance or fitness record."
+      ],
+      "distractors": [
+        "You deliberately went for a morning walk.",
+        "You gave someone directions to a bus stop.",
+        "You caught an earlier train than usual."
+      ]
+    },
+    {
+      "id": "everyday-laundry",
+      "category": "everyday",
+      "truth": "You moved wet laundry from the washer to the dryer.",
+      "facts": [
+        "The wash cycle had finished.",
+        "You transferred one load and started the dryer."
+      ],
+      "boundaries": [
+        "You did not finish folding or deliver a laundry service."
+      ],
+      "distractors": [
+        "You folded a basket of dry clothes.",
+        "You donated old clothes.",
+        "You hand-washed a stained shirt."
+      ]
+    },
+    {
+      "id": "everyday-water",
+      "category": "everyday",
+      "truth": "You refilled your own water bottle.",
+      "facts": [
+        "Your bottle was nearly empty.",
+        "You filled it from a drinking-water tap."
+      ],
+      "boundaries": [
+        "You did not build infrastructure or supply anyone else."
+      ],
+      "distractors": [
+        "You watered a houseplant.",
+        "You replaced a water-filter cartridge.",
+        "You bought a case of bottled water."
+      ]
+    },
+    {
+      "id": "everyday-bed",
+      "category": "everyday",
+      "truth": "You made your bed after leaving it unmade all week.",
+      "facts": [
+        "You straightened the sheet and blanket.",
+        "This was your first time making it that week."
+      ],
+      "boundaries": [
+        "You did not clean the whole room or change the sheets."
+      ],
+      "distractors": [
+        "You assembled a new bed frame.",
+        "You washed your bedsheets.",
+        "You vacuumed your bedroom."
+      ]
+    },
+    {
+      "id": "everyday-subscription",
+      "category": "everyday",
+      "truth": "You canceled a free trial before it charged you.",
+      "facts": [
+        "You used the cancellation page.",
+        "The trial ended without a paid charge."
+      ],
+      "boundaries": [
+        "You did not negotiate a refund or cancel other people's subscriptions."
+      ],
+      "distractors": [
+        "You negotiated a discount on a bill.",
+        "You returned a damaged purchase.",
+        "You redeemed an expired coupon."
+      ]
+    },
+    {
+      "id": "everyday-plant",
+      "category": "everyday",
+      "truth": "You watered one drooping houseplant.",
+      "facts": [
+        "The plant's soil was dry.",
+        "You gave the plant water."
+      ],
+      "boundaries": [
+        "The plant's recovery is not yet known.",
+        "You did not start a garden or conservation program."
+      ],
+      "distractors": [
+        "You bought a new houseplant.",
+        "You repotted a plant into a larger pot.",
+        "You removed weeds from a garden."
+      ]
+    },
+    {
+      "id": "everyday-fitted-sheet",
+      "category": "everyday",
+      "truth": "You folded a fitted sheet into a rough ball and put it away.",
+      "facts": [
+        "The sheet was clean and dry.",
+        "You stored it without neatly folding it."
+      ],
+      "boundaries": [
+        "Do not claim the result was neatly folded or taught to others."
+      ],
+      "distractors": [
+        "You rolled a sleeping bag into its case.",
+        "You folded a towel into a rectangle.",
+        "You packed a suitcase for a trip."
+      ]
+    },
+    {
+      "id": "everyday-wifi",
+      "category": "everyday",
+      "truth": "You unplugged your home router and plugged it back in.",
+      "facts": [
+        "The home Wi-Fi was not working.",
+        "You restarted the router and the connection returned."
+      ],
+      "boundaries": [
+        "You did not write software or replace any equipment."
+      ],
+      "distractors": [
+        "You changed the Wi-Fi password.",
+        "You installed a new router.",
+        "You connected a printer to the network."
+      ]
+    },
+    {
+      "id": "everyday-groceries",
+      "category": "everyday",
+      "truth": "You carried all your groceries inside in one trip.",
+      "facts": [
+        "You had several grocery bags.",
+        "You carried all of them from your car to your home at once."
+      ],
+      "boundaries": [
+        "Do not invent a weight, speed record, or delivery job."
+      ],
+      "distractors": [
+        "You helped a neighbor unload furniture.",
+        "You organized your kitchen cupboards.",
+        "You ordered groceries for delivery."
+      ]
+    },
+    {
+      "id": "everyday-keys",
+      "category": "everyday",
+      "truth": "You found your lost keys in your own pocket.",
+      "facts": [
+        "You had been looking for your keys.",
+        "They were in the clothes you were wearing."
+      ],
+      "boundaries": [
+        "No tracking device or other search team was involved."
+      ],
+      "distractors": [
+        "You returned someone else's lost wallet.",
+        "You found your phone under a sofa.",
+        "You made a spare key at a shop."
+      ]
+    },
+    {
+      "id": "everyday-password",
+      "category": "everyday",
+      "truth": "You reset a password you had forgotten.",
+      "facts": [
+        "You used the account's password-reset flow.",
+        "You regained access to your own account."
+      ],
+      "boundaries": [
+        "You did not repair a security breach or help other users."
+      ],
+      "distractors": [
+        "You created your first email account.",
+        "You enabled two-factor authentication.",
+        "You helped someone install an app."
+      ]
+    },
+    {
+      "id": "everyday-shopping-cart",
+      "category": "everyday",
+      "truth": "You returned your shopping cart to the cart bay.",
+      "facts": [
+        "You had finished loading your purchases.",
+        "You put your one cart in the designated area."
+      ],
+      "boundaries": [
+        "You did not collect other carts or work for the store."
+      ],
+      "distractors": [
+        "You held a shop door for another person.",
+        "You helped someone find an aisle.",
+        "You picked up a dropped grocery item."
+      ]
+    },
+    {
+      "id": "campus-work-typo",
+      "category": "campus-work",
+      "truth": "You corrected one typo in a shared document.",
+      "facts": [
+        "You noticed one misspelled word.",
+        "You replaced it with the correct spelling."
+      ],
+      "boundaries": [
+        "You did not rewrite, research, or approve the document."
+      ],
+      "distractors": [
+        "You wrote a new report introduction.",
+        "You changed a presentation's font.",
+        "You removed a duplicate spreadsheet row."
+      ]
+    },
+    {
+      "id": "campus-work-reply-all",
+      "category": "campus-work",
+      "truth": "You replied 'Thanks!' to an email with twelve recipients.",
+      "facts": [
+        "The thread included twelve recipients.",
+        "Your reply contained only a brief thank-you."
+      ],
+      "boundaries": [
+        "You did not contribute new information or make a decision."
+      ],
+      "distractors": [
+        "You sent a detailed project update.",
+        "You forwarded an email to the right person.",
+        "You scheduled a meeting for twelve people."
+      ]
+    },
+    {
+      "id": "campus-work-meeting-cancel",
+      "category": "campus-work",
+      "truth": "You canceled a meeting because there was nothing to discuss.",
+      "facts": [
+        "You had organized one meeting.",
+        "You canceled it before it began because there was no agenda."
+      ],
+      "boundaries": [
+        "Do not invent cost savings or claim everyone finished extra work."
+      ],
+      "distractors": [
+        "You ended a meeting five minutes early.",
+        "You wrote an agenda for a meeting.",
+        "You moved a meeting to a different room."
+      ]
+    },
+    {
+      "id": "campus-work-group-title",
+      "category": "campus-work",
+      "truth": "You added your name to a group presentation's title slide.",
+      "facts": [
+        "The title slide already existed.",
+        "Your contribution here was adding your own name."
+      ],
+      "boundaries": [
+        "You did not create the presentation or do its research."
+      ],
+      "distractors": [
+        "You wrote the presentation's conclusion.",
+        "You designed a new title slide.",
+        "You presented the group's findings."
+      ]
+    },
+    {
+      "id": "campus-work-club",
+      "category": "campus-work",
+      "truth": "You attended one club meeting because it had free pizza.",
+      "facts": [
+        "You attended the meeting.",
+        "Free pizza was your reason for going."
+      ],
+      "boundaries": [
+        "You did not join the leadership team or organize the event."
+      ],
+      "distractors": [
+        "You organized a pizza night for a club.",
+        "You volunteered at a campus event.",
+        "You joined a sports team's first practice."
+      ]
+    },
+    {
+      "id": "campus-work-read-receipt",
+      "category": "campus-work",
+      "truth": "You reacted with a thumbs-up to a coworker's message.",
+      "facts": [
+        "A coworker posted an update.",
+        "You added one thumbs-up reaction."
+      ],
+      "boundaries": [
+        "You did not implement, review, or approve the work described."
+      ],
+      "distractors": [
+        "You wrote feedback on a coworker's draft.",
+        "You congratulated a teammate in person.",
+        "You answered a question in the team chat."
+      ]
+    },
+    {
+      "id": "campus-work-calendar",
+      "category": "campus-work",
+      "truth": "You moved a calendar event to avoid waking up early.",
+      "facts": [
+        "You rescheduled one personal study session.",
+        "You wanted to sleep later."
+      ],
+      "boundaries": [
+        "No other attendees, team, or external deadline were involved."
+      ],
+      "distractors": [
+        "You booked a room for a study group.",
+        "You set an alarm for an early lecture.",
+        "You cleared duplicate calendar entries."
+      ]
+    },
+    {
+      "id": "campus-work-printer",
+      "category": "campus-work",
+      "truth": "You put paper into an empty office printer.",
+      "facts": [
+        "The printer had run out of paper.",
+        "You refilled its tray and resumed your own print job."
+      ],
+      "boundaries": [
+        "You did not repair the printer or manage office procurement."
+      ],
+      "distractors": [
+        "You replaced a printer ink cartridge.",
+        "You scanned a document.",
+        "You installed a printer driver."
+      ]
+    },
+    {
+      "id": "campus-work-lecture",
+      "category": "campus-work",
+      "truth": "You asked a question that the lecturer had just answered.",
+      "facts": [
+        "You were attending a lecture.",
+        "The answer had been given immediately before you asked."
+      ],
+      "boundaries": [
+        "You did not expose an error or introduce a new research question."
+      ],
+      "distractors": [
+        "You answered a lecturer's question correctly.",
+        "You asked for an extension after class.",
+        "You corrected a mistake on a lecture slide."
+      ]
+    },
+    {
+      "id": "campus-work-coffee",
+      "category": "campus-work",
+      "truth": "You made a fresh pot of coffee after drinking the last cup.",
+      "facts": [
+        "You drank the remaining coffee.",
+        "You used the office machine to brew another pot."
+      ],
+      "boundaries": [
+        "You did not invent a blend or start a catering service."
+      ],
+      "distractors": [
+        "You bought coffee for your whole team.",
+        "You cleaned the office coffee machine.",
+        "You brought your own coffee from home."
+      ]
+    },
+    {
+      "id": "campus-work-tab-close",
+      "category": "campus-work",
+      "truth": "You closed twenty browser tabs without reading them.",
+      "facts": [
+        "You had twenty open tabs.",
+        "You closed them without reading their contents."
+      ],
+      "boundaries": [
+        "You did not finish the research or summarize those pages."
+      ],
+      "distractors": [
+        "You bookmarked twenty research papers.",
+        "You read and summarized an article.",
+        "You organized your desktop files."
+      ]
+    },
+    {
+      "id": "campus-work-badge",
+      "category": "campus-work",
+      "truth": "You wore a conference badge after the conference ended.",
+      "facts": [
+        "You attended the conference.",
+        "You kept wearing its badge afterward."
+      ],
+      "boundaries": [
+        "You were not a speaker, sponsor, or organizer."
+      ],
+      "distractors": [
+        "You designed a badge for an event.",
+        "You volunteered at conference check-in.",
+        "You collected a certificate after a workshop."
+      ]
+    },
+    {
+      "id": "campus-work-desk",
+      "category": "campus-work",
+      "truth": "You moved a pile of desk clutter out of your webcam's view.",
+      "facts": [
+        "You were preparing for a video call.",
+        "The clutter stayed on your desk but outside the camera frame."
+      ],
+      "boundaries": [
+        "You did not clean, sort, or dispose of the clutter."
+      ],
+      "distractors": [
+        "You cleaned your entire desk.",
+        "You bought a new webcam.",
+        "You changed your video-call background."
+      ]
+    },
+    {
+      "id": "campus-work-network",
+      "category": "campus-work",
+      "truth": "You connected with someone online after borrowing their pen.",
+      "facts": [
+        "Someone lent you a pen.",
+        "You later sent them a professional connection request."
+      ],
+      "boundaries": [
+        "You did not form a company or start a working partnership."
+      ],
+      "distractors": [
+        "You exchanged business cards at a conference.",
+        "You introduced two colleagues to each other.",
+        "You interviewed someone for a student newspaper."
+      ]
+    },
+    {
+      "id": "campus-work-spreadsheet",
+      "category": "campus-work",
+      "truth": "You made one spreadsheet column wider so the text would fit.",
+      "facts": [
+        "Some text was cut off visually.",
+        "You resized one column to show the existing text."
+      ],
+      "boundaries": [
+        "You did not analyze data, change formulas, or add information."
+      ],
+      "distractors": [
+        "You fixed a broken spreadsheet formula.",
+        "You sorted a spreadsheet by date.",
+        "You created a chart from survey results."
+      ]
+    },
+    {
+      "id": "campus-work-out-of-office",
+      "category": "campus-work",
+      "truth": "You set an out-of-office reply for a single afternoon.",
+      "facts": [
+        "You were away for one afternoon.",
+        "You enabled an automatic email reply."
+      ],
+      "boundaries": [
+        "You did not delegate a team or plan an extended leave."
+      ],
+      "distractors": [
+        "You forwarded work to a colleague.",
+        "You cleared your entire inbox.",
+        "You scheduled a week's worth of emails."
+      ]
+    }
+  ]
+}
