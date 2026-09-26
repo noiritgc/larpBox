@@ -1,6 +1,7 @@
 import type { PlayerView, PublicPlayer, Side } from '@larpbox/shared';
 import { formatClout, ordinal, plural, signedClout } from '../../lib/format';
 import { Avatar } from '../game/Avatar';
+import { CountUp } from '../game/CountUp';
 import { Scoreboard } from '../game/Scoreboard';
 import { sideStamp } from '../game/Stamp';
 import { ScreenHeading } from '../ui/ScreenHeading';
@@ -30,7 +31,7 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
   return (
     <div className="grid gap-4 enter" data-testid="duel-result">
       <div className="phone-sticky-bar">
-        <span className="font-mono text-[15px] font-medium">
+        <span className="min-w-0 flex-1 font-mono text-[14px] font-medium leading-tight">
           Round {view.roundNumber} · Post-off {view.duelNumber} of {view.duelsInRound}
         </span>
         <Timer phase={view.phase} variant="phone" />
@@ -40,18 +41,24 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
         {me.writingPoints !== null ? (
           <div className="breakdown-row">
             <span>Writing</span>
-            <strong>{signedClout(me.writingPoints)}</strong>
+            <strong>
+              <CountUp value={me.writingPoints} prefix="+" />
+            </strong>
           </div>
         ) : null}
         {me.guessPoints !== null ? (
           <div className="breakdown-row">
             <span>{me.guessCorrect ? 'Decoded the truth' : me.guessCorrect === false ? 'Missed the truth' : 'No guess locked'}</span>
-            <strong>{signedClout(me.guessPoints)}</strong>
+            <strong>
+              <CountUp value={me.guessPoints} prefix="+" />
+            </strong>
           </div>
         ) : null}
         <div className="breakdown-row breakdown-total">
           <span>Total</span>
-          <strong data-testid="my-total">{formatClout(me.total)} Clout</strong>
+          <strong data-testid="my-total">
+            <CountUp value={me.total} suffix=" Clout" />
+          </strong>
         </div>
       </div>
       {me.autoSubmitted ? (
@@ -69,7 +76,7 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
           const author = byId.get(outcome.playerId);
           const stamp = sideStamp(result.stamp, side);
           return (
-            <li key={side} className="flex items-center gap-3 rounded-[12px] border-2 border-ink bg-surface p-3">
+            <li key={side} className="result-row flex items-center gap-3 rounded-[12px] border-2 border-ink bg-surface p-3">
               <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] border-2 border-ink bg-yellow font-display font-bold">{side}</span>
               {author ? <Avatar id={author.avatarId} size={36} decorative /> : null}
               <span className="min-w-0 flex-1">
@@ -80,8 +87,8 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
                 <span className="block text-[14px] muted">
                   {outcome.forfeit ? 'Nothing submitted' : `${plural(outcome.votes, 'endorsement')} · ${signedClout(outcome.points)}`}
                 </span>
+                {stamp ? <span className="stamp stamp-blue mt-1 text-[12px]">{stamp.label}</span> : null}
               </span>
-              {stamp ? <span className="stamp stamp-blue text-[12px]">{stamp.label}</span> : null}
             </li>
           );
         })}

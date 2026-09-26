@@ -25,7 +25,7 @@ export function ScreenHeading({
   }, []);
   const Tag = level === 1 ? 'h1' : 'h2';
   return (
-    <Tag ref={ref} tabIndex={-1} className={`outline-none ${className}`}>
+    <Tag ref={ref} tabIndex={-1} className={`screen-heading ${className}`}>
       {children}
     </Tag>
   );

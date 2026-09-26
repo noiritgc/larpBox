@@ -31,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return (
     <button ref={ref} type={type} className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
       {loading ? <span className="spinner" aria-hidden="true" /> : icon}
-      <span>{loading && loadingLabel ? loadingLabel : children}</span>
+      <span className="inline-flex items-center gap-2">{loading && loadingLabel ? loadingLabel : children}</span>
     </button>
   );
 });

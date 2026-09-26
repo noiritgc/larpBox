@@ -79,6 +79,13 @@
     color: inherit;
   }
 
+  /* Headings receive focus on phase changes for screen readers; they are not controls. */
+  .screen-heading:focus,
+  .screen-heading:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
   button {
     cursor: pointer;
   }
@@ -438,7 +445,7 @@
     align-items: center;
     gap: 12px;
     min-width: 0;
-    padding-right: 56px;
+    padding-right: 44px;
   }
   .post-author {
     font-weight: 700;
@@ -455,14 +462,14 @@
     right: -2px;
     display: grid;
     place-items: center;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border: 2px solid var(--ink);
     border-radius: 0 var(--radius-md) 0 var(--radius-md);
     background: var(--yellow);
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 26px;
+    font-size: 22px;
   }
   .post-body {
     white-space: pre-wrap;

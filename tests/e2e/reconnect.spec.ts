@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Browser } from '@playwright/test';
 import {
   closeAll,
   findByRole,
@@ -21,7 +21,7 @@ test.afterEach(async () => {
   expect(pageErrors.splice(0)).toEqual([]);
 });
 
-async function toWriting(options: Parameters<typeof hostRoom>[1], browser: import('@playwright/test').Browser, names = ['Alex', 'Sam', 'Jo']) {
+async function toWriting(options: Parameters<typeof hostRoom>[1], browser: Browser, names = ['Alex', 'Sam', 'Jo']) {
   host = await hostRoom(browser, options);
   players = await joinAll(browser, host.code, names);
   await startGame(host, names.length);

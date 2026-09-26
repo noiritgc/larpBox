@@ -15,8 +15,9 @@
     top: 0;
     z-index: 20;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px 8px;
     padding: calc(10px + env(safe-area-inset-top)) 0 10px;
     background: var(--paper);
     border-bottom: 2px solid var(--ink);
@@ -30,6 +31,13 @@
     flex-direction: column;
     gap: 16px;
     padding-top: 16px;
+    min-width: 0;
+  }
+  /* Let every column shrink to the viewport (large text, 200% zoom) instead of scrolling sideways. */
+  .phone-body > *,
+  .phone-body .grid > *,
+  .phone-body .flex > * {
+    min-width: 0;
   }
   .phone-heading {
     font-size: 28px;
@@ -105,7 +113,7 @@
     overflow-y: auto;
   }
   .composer::placeholder {
-    color: #8a8b90;
+    color: #6b6c72;
   }
   .composer[aria-invalid='true'] {
     border-color: var(--red);
@@ -153,6 +161,18 @@
     display: grid;
     gap: 10px;
     font-size: 16px;
+  }
+  .details-content .post-card {
+    padding: 14px 14px 10px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  @media (max-width: 380px) {
+    .details-content {
+      padding: 10px;
+    }
+    .post-card {
+      padding: 14px 14px 10px;
+    }
   }
 
   .mini-post {
@@ -213,5 +233,39 @@
     padding-top: 8px;
     border-top: 2px solid var(--ink);
     font-size: 20px;
+  }
+}
+
+/* Very narrow layouts (small phones at 200% zoom): compact post headers, never sideways scroll. */
+@media (max-width: 300px) {
+  .post-head {
+    gap: 8px;
+    padding-right: 34px;
+  }
+  .post-head .avatar {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+  }
+  .post-side {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+  }
+  .phone .chip {
+    min-height: 28px;
+    padding: 1px 8px;
+  }
+  /* Decorative avatars give way first; names, status and scores stay. */
+  .result-row .avatar,
+  .phone .score-row .avatar {
+    display: none;
+  }
+  .phone .score-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.5em;
+  }
+  .result-row .stamp {
+    transform: none;
   }
 }

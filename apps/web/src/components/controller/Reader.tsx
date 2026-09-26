@@ -16,7 +16,7 @@ type DuelView = PlayerView & { screen: Extract<PlayerView['screen'], { kind: 'DU
 function DuelHeader({ view }: { view: PlayerView }) {
   return (
     <div className="phone-sticky-bar">
-      <span className="font-mono text-[15px] font-medium">
+      <span className="min-w-0 flex-1 font-mono text-[14px] font-medium leading-tight">
         Round {view.roundNumber} · Post-off {view.duelNumber} of {view.duelsInRound}
       </span>
       <Timer phase={view.phase} variant="phone" />
@@ -122,8 +122,8 @@ function GuessScreen({ view, connection, connected }: { view: DuelView; connecti
   return (
     <div className="grid gap-4 enter">
       <DuelHeader view={view} />
-      <CollapsiblePosts posts={screen.posts} mySide={null} />
       <ScreenHeading className="phone-heading">What actually happened?</ScreenHeading>
+      <CollapsiblePosts posts={screen.posts} mySide={null} />
       {lockedId ? (
         <div className="grid gap-3" data-testid="guess-locked">
           <StatusBanner tone="green" icon="none">
@@ -233,6 +233,7 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
   return (
     <div className="grid gap-4 enter">
       <DuelHeader view={view} />
+      <ScreenHeading className="phone-heading">Who made the most out of the least?</ScreenHeading>
       {truthBlock}
       {me.guessCorrect !== null ? (
         <p className={`inline-flex items-center gap-2 font-semibold ${me.guessCorrect ? 'text-green' : 'muted'}`} data-testid="guess-verdict">
@@ -243,8 +244,7 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
         <p className="font-semibold muted">You didn't lock a guess for this one.</p>
       )}
       <Posts posts={screen.posts} mySide={null} />
-      <ScreenHeading className="phone-heading">Who made the most out of the least?</ScreenHeading>
-      <p className="text-[17px] font-semibold">Which post made this sound most impressive—and stayed technically true?</p>
+      <p className="text-[19px] font-bold leading-snug">Which post made this sound most impressive—and stayed technically true?</p>
       <p className="phone-support">If a post invented facts, don't endorse it. Neither is a valid choice.</p>
       {me.endorsement ? (
         <StatusBanner tone="green" icon="none">
