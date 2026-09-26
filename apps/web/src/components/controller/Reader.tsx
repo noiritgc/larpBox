@@ -85,7 +85,8 @@ function ReadScreen({ view }: { view: DuelView }) {
 function GuessScreen({ view, connection, connected }: { view: DuelView; connection: RoomConnection | null; connected: boolean }) {
   const announce = useAnnounce();
   const screen = view.screen.kind === 'DUEL_GUESS' ? view.screen : null;
-  const [selected, setSelected] = useState<string | null>(null);
+  // Restores an unlocked pick after a refresh; the server locks it if time runs out.
+  const [selected, setSelected] = useState<string | null>(screen?.me.guessPick ?? null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!screen) return null;
@@ -120,6 +121,11 @@ function GuessScreen({ view, connection, connected }: { view: DuelView; connecti
     }
   };
 
+  const pick = (optionId: string) => {
+    setSelected(optionId);
+    void connection?.command('duel.pickGuess', { duelId: screen.duelId, optionId });
+  };
+
   return (
     <div className="grid gap-4 enter">
       <DuelHeader view={view} pending={!lockedId} />
@@ -142,7 +148,7 @@ function GuessScreen({ view, connection, connected }: { view: DuelView; connecti
           <ChoiceGroup
             label="What actually happened?"
             value={selected}
-            onChange={setSelected}
+            onChange={pick}
             disabled={!connected || view.phase.paused}
             choices={screen.options.map((option, index) => ({
               value: option.id,
@@ -166,7 +172,9 @@ function GuessScreen({ view, connection, connected }: { view: DuelView; connecti
           >
             Lock guess
           </Button>
-          {!selected ? <p className="phone-support text-center">Pick one, then lock it in. You can change your pick until you lock.</p> : null}
+          <p className="phone-support text-center" data-testid="pick-hint">
+            {selected ? 'Lock it in, or your pick counts when time runs out.' : 'Pick one, then lock it in. If time runs out, your pick counts.'}
+          </p>
         </>
       )}
       <p className="phone-support text-center">
@@ -185,7 +193,8 @@ const ENDORSE_LABELS: Record<Endorsement, string> = {
 function EndorseScreen({ view, connection, connected }: { view: DuelView; connection: RoomConnection | null; connected: boolean }) {
   const announce = useAnnounce();
   const screen = view.screen.kind === 'DUEL_ENDORSE' ? view.screen : null;
-  const [selected, setSelected] = useState<Endorsement | null>(null);
+  // Restores an unlocked pick after a refresh; the server locks it if time runs out.
+  const [selected, setSelected] = useState<Endorsement | null>(screen?.me.endorsementPick ?? null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!screen) return null;
@@ -231,6 +240,11 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
     }
   };
 
+  const pick = (choice: Endorsement) => {
+    setSelected(choice);
+    void connection?.command('duel.pickEndorsement', { duelId: screen.duelId, choice });
+  };
+
   return (
     <div className="grid gap-4 enter">
       <DuelHeader view={view} pending={me.endorsement === null} />
@@ -258,7 +272,7 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
           <ChoiceGroup
             label="Your endorsement"
             value={selected}
-            onChange={setSelected}
+            onChange={pick}
             disabled={!connected || view.phase.paused}
             choices={(['A', 'B', 'NEITHER'] as const).map((choice) => ({
               value: choice,
@@ -283,6 +297,9 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
           >
             Lock endorsement
           </Button>
+          <p className="phone-support text-center" data-testid="pick-hint">
+            {selected ? 'Lock it in, or your pick counts when time runs out.' : 'If time runs out with nothing picked, it counts as Neither.'}
+          </p>
         </>
       )}
       <p className="phone-support text-center">

@@ -1,12 +1,17 @@
-import { roundMultiplier, SIDES, type Side } from '@larpbox/shared';
+import { roundMultiplier, SIDES, type RoomSettings, type Side } from '@larpbox/shared';
 import type { PromptDefinition } from '../content/loadPrompts.js';
 import type { Random } from './random.js';
 import type { Assignment, Duel, GuessOptionRecord, Round } from './types.js';
 
 /**
- * Fair scheduling. Each round arranges the roster in a circle; its N edges are the N duels, so
- * every player writes exactly twice per round (degree two), including odd N. Never "random partner
- * per player", which can produce unequal assignments.
+ * Fair scheduling, never "random partner per player", which can produce unequal assignments.
+ *
+ * Two posts each: each round arranges the roster in a circle; its N edges are the N duels, so every
+ * player writes exactly twice per round (degree two), including odd N.
+ *
+ * One post each: each round pairs players up (a perfect matching, floor(N / 2) duels). With an odd
+ * roster the unpaired player sits out that round and judges every post-off; in a two-round game a
+ * different player sits out in round 2.
  */
 
 export const ROUND_TWO_CANDIDATES = 200;
@@ -17,45 +22,81 @@ export function ringEdges(ring: readonly string[]): Pair[] {
   return ring.map((id, index) => [id, ring[(index + 1) % ring.length] as string] as const);
 }
 
+/** Consecutive pairs of a shuffled roster; an odd roster leaves its last player sitting out. */
+export function matchingPairs(order: readonly string[]): { pairs: Pair[]; sitOutIds: string[] } {
+  const pairs: Pair[] = [];
+  for (let index = 0; index + 1 < order.length; index += 2) {
+    pairs.push([order[index] as string, order[index + 1] as string] as const);
+  }
+  const last = order[order.length - 1];
+  return { pairs, sitOutIds: order.length % 2 === 1 && last !== undefined ? [last] : [] };
+}
+
 export function edgeKey([a, b]: Pair): string {
   return a < b ? `${a}|${b}` : `${b}|${a}`;
 }
 
 export interface RoundPlan {
   roundIndex: number;
-  /** Duels as unordered writer pairs, in ring order. */
+  /** Duels as unordered writer pairs, in ring (or matching) order. */
   pairs: Pair[];
   /** Presentation order: pairs[order[k]] is presented k-th. */
   order: number[];
   repeatedPairings: number;
+  /** Players with no post this round (one post each, odd roster). */
+  sitOutIds: string[];
+}
+
+function arrange(order: readonly string[], postsPerPlayer: RoomSettings['postsPerPlayer']): { pairs: Pair[]; sitOutIds: string[] } {
+  return postsPerPlayer === 2 ? { pairs: ringEdges(order), sitOutIds: [] } : matchingPairs(order);
 }
 
 /**
- * Round 1: seeded shuffle into a ring. Round 2: the lowest-overlap ring out of 200 seeded
- * candidates (first candidate wins ties); repeats are unavoidable for small N and certain at N=3.
+ * Round 1: seeded shuffle into a ring or matching. Round 2: the lowest-overlap arrangement out of
+ * 200 seeded candidates (first candidate wins ties); with one post each and an odd roster, only
+ * candidates whose sit-out differs from round 1 qualify. Repeats are unavoidable for small N.
  * Presentation order is shuffled independently from the same PRNG stream.
  */
-export function planRounds(rosterIds: readonly string[], roundCount: 1 | 2, rng: Random): RoundPlan[] {
-  if (rosterIds.length < 3) throw new RangeError('A ring schedule needs at least three players.');
-  const indexes = rosterIds.map((_, index) => index);
-  const firstPairs = ringEdges(rng.shuffle(rosterIds));
+export function planRounds(
+  rosterIds: readonly string[],
+  roundCount: 1 | 2,
+  rng: Random,
+  postsPerPlayer: RoomSettings['postsPerPlayer'] = 2,
+): RoundPlan[] {
+  if (rosterIds.length < 3) throw new RangeError('A schedule needs at least three players.');
+  const first = arrange(rng.shuffle(rosterIds), postsPerPlayer);
   const plans: RoundPlan[] = [
-    { roundIndex: 0, pairs: firstPairs, order: rng.shuffle(indexes), repeatedPairings: 0 },
+    {
+      roundIndex: 0,
+      pairs: first.pairs,
+      order: rng.shuffle(first.pairs.map((_, index) => index)),
+      repeatedPairings: 0,
+      sitOutIds: first.sitOutIds,
+    },
   ];
   if (roundCount === 2) {
-    const seen = new Set(firstPairs.map(edgeKey));
-    let best: { pairs: Pair[]; repeats: number } | null = null;
+    const seen = new Set(first.pairs.map(edgeKey));
+    const satOut = new Set(first.sitOutIds);
+    let best: { pairs: Pair[]; sitOutIds: string[]; repeats: number } | null = null;
     for (let candidate = 0; candidate < ROUND_TWO_CANDIDATES; candidate += 1) {
-      const pairs = ringEdges(rng.shuffle(rosterIds));
-      const repeats = pairs.filter((pair) => seen.has(edgeKey(pair))).length;
-      if (best === null || repeats < best.repeats) best = { pairs, repeats };
+      const next = arrange(rng.shuffle(rosterIds), postsPerPlayer);
+      if (next.sitOutIds.some((id) => satOut.has(id))) continue;
+      const repeats = next.pairs.filter((pair) => seen.has(edgeKey(pair))).length;
+      if (best === null || repeats < best.repeats) best = { ...next, repeats };
     }
-    if (!best) throw new Error('unreachable: no round-two candidates');
+    if (!best) {
+      // Practically unreachable (each candidate repeats the sit-out with probability 1/N): rotate
+      // round 1's order so its sit-out moves into the first pair.
+      const rotated = [...first.sitOutIds, ...first.pairs.flat()];
+      const next = arrange(rotated, postsPerPlayer);
+      best = { ...next, repeats: next.pairs.filter((pair) => seen.has(edgeKey(pair))).length };
+    }
     plans.push({
       roundIndex: 1,
       pairs: best.pairs,
-      order: rng.shuffle(indexes),
+      order: rng.shuffle(best.pairs.map((_, index) => index)),
       repeatedPairings: best.repeats,
+      sitOutIds: best.sitOutIds,
     });
   }
   return plans;
@@ -141,6 +182,8 @@ export function buildSchedule(input: {
         readerIds: rosterIds.filter((id) => id !== pair[0] && id !== pair[1]),
         guesses: new Map(),
         endorsements: new Map(),
+        guessPicks: new Map(),
+        endorsementPicks: new Map(),
         settled: false,
         result: null,
       });
@@ -151,6 +194,7 @@ export function buildSchedule(input: {
       multiplier: roundMultiplier(plan.roundIndex),
       duelIds,
       repeatedPairings: plan.repeatedPairings,
+      sitOutIds: [...plan.sitOutIds],
       scoreAtStart: {},
     });
   }

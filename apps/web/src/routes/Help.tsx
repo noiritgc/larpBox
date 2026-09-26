@@ -53,6 +53,10 @@ export default function Help() {
             <li>One laptop or TV opens the big screen with “Host a game”. It shows the posts but never scores.</li>
             <li>Everyone plays on their own phone, including the host: join on a separate phone.</li>
             <li>Nobody needs an account or an app. 3–8 players.</li>
+            <li>
+              The host picks one or two posts per player. With one each and an odd number of players, one person sits out
+              each round and judges every post-off instead.
+            </li>
             <li>The host controls pauses. If someone needs a minute, ask the host to pause.</li>
           </ul>
         </section>

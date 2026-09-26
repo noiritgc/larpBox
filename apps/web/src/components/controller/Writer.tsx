@@ -1,5 +1,5 @@
 import { checkPost, POST_ISSUE_MESSAGES, POST_MAX_GRAPHEMES, type AssignmentView, type PlayerView } from '@larpbox/shared';
-import { ChevronDown, Lock, PenLine, RotateCw } from 'lucide-react';
+import { ChevronDown, Gavel, Lock, PenLine, RotateCw } from 'lucide-react';
 import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useDraft, type SaveStatus } from '../../hooks/useDraft';
 import { usePhaseTimer } from '../../hooks/usePhaseTimer';
@@ -214,10 +214,31 @@ function AllLocked({ assignments }: { assignments: AssignmentView[] }) {
       <p className="text-[18px] font-semibold">Look at the big screen.</p>
       {assignments.map((assignment, index) => (
         <div key={assignment.id} className="grid gap-1">
-          <p className="eyebrow">Post {index + 1}</p>
+          <p className="eyebrow">{assignments.length === 1 ? 'Your post' : `Post ${index + 1}`}</p>
           <article className="mini-post">{assignment.finalText}</article>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** One post each with an odd roster: this player writes nothing this round and judges instead. */
+function SittingOut({ view }: { view: PlayerView }) {
+  return (
+    <div className="grid gap-4 enter" data-testid="sitting-out">
+      <div className="phone-sticky-bar">
+        <ScreenHeading className="font-display text-[22px] leading-none">Round {view.roundNumber}</ScreenHeading>
+        <Timer phase={view.phase} variant="phone" urgentBelow={15} />
+      </div>
+      <div className="grid justify-items-center gap-3 py-6 text-center">
+        <span className="icon-tile" aria-hidden="true">
+          <Gavel size={26} />
+        </span>
+        <p className="phone-heading">You're judging this round.</p>
+        <p className="text-[18px]">
+          Everyone else is paired up, so you have no post this time. You'll guess and endorse in every post-off.
+        </p>
+      </div>
     </div>
   );
 }
@@ -241,7 +262,8 @@ export function ControllerWriter({
   const baseId = useId();
   const timer = usePhaseTimer(view.phase);
 
-  if (assignments.length === 0) return null;
+  if (view.screen.kind !== 'WRITING') return null;
+  if (assignments.length === 0) return <SittingOut view={view} />;
   const allDone = assignments.every((assignment) => assignment.status !== 'DRAFT');
   if (allDone) return <AllLocked assignments={assignments} />;
 
@@ -266,37 +288,42 @@ export function ControllerWriter({
       </div>
       {warn ? (
         <StatusBanner tone="yellow" icon="warning" role="alert">
-          Time's almost up. Your saved drafts will be submitted.
+          {assignments.length === 1 ? "Time's almost up. Your saved draft will be submitted." : "Time's almost up. Your saved drafts will be submitted."}
         </StatusBanner>
       ) : null}
-      <div role="tablist" aria-label="Your two posts" className="tabs">
-        {assignments.map((assignment, i) => {
-          const isLocked = assignment.status === 'LOCKED';
-          return (
-            <button
-              key={assignment.id}
-              ref={(el) => {
-                tabRefs.current[i] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`${baseId}-tab-${i}`}
-              aria-selected={i === index}
-              aria-controls={`${baseId}-panel`}
-              tabIndex={i === index ? 0 : -1}
-              className="tab"
-              onClick={() => setActive(i)}
-              onKeyDown={(event) => onTabKey(event, i)}
-              data-testid={`post-tab-${i + 1}`}
-            >
-              Post {i + 1}
-              {isLocked ? <Lock size={18} aria-hidden="true" /> : <PenLine size={18} aria-hidden="true" />}
-              <span className="sr-only">{isLocked ? ', locked' : ', draft'}</span>
-            </button>
-          );
-        })}
-      </div>
-      <div role="tabpanel" id={`${baseId}-panel`} aria-labelledby={`${baseId}-tab-${index}`}>
+      {assignments.length > 1 ? (
+        <div role="tablist" aria-label="Your posts" className="tabs">
+          {assignments.map((assignment, i) => {
+            const isLocked = assignment.status === 'LOCKED';
+            return (
+              <button
+                key={assignment.id}
+                ref={(el) => {
+                  tabRefs.current[i] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`${baseId}-tab-${i}`}
+                aria-selected={i === index}
+                aria-controls={`${baseId}-panel`}
+                tabIndex={i === index ? 0 : -1}
+                className="tab"
+                onClick={() => setActive(i)}
+                onKeyDown={(event) => onTabKey(event, i)}
+                data-testid={`post-tab-${i + 1}`}
+              >
+                Post {i + 1}
+                {isLocked ? <Lock size={18} aria-hidden="true" /> : <PenLine size={18} aria-hidden="true" />}
+                <span className="sr-only">{isLocked ? ', locked' : ', draft'}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div
+        {...(assignments.length > 1 ? { role: 'tabpanel', 'aria-labelledby': `${baseId}-tab-${index}` } : {})}
+        id={`${baseId}-panel`}
+      >
         <Composer
           key={current.id}
           view={view}

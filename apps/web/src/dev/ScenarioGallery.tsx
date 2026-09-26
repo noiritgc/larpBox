@@ -79,15 +79,28 @@ const hostScenarios: Scenario[] = [
   { id: 'host-lobby-empty', title: 'Host lobby, empty', render: () => <HostLobby view={hostView({ kind: 'LOBBY', readyCount: 0, canStart: false, startBlocker: { code: 'TOO_FEW_PLAYERS', message: 'Need 3 more players to start.' }, settingsChanged: false }, { players: [] })} /> },
   { id: 'host-lobby-full', title: 'Host lobby, 8 seats, offline and joining', render: () => <HostLobby view={hostView({ kind: 'LOBBY', readyCount: 6, canStart: false, startBlocker: { code: 'PLAYER_OFFLINE', message: 'Waiting for Tanvi to reconnect.' }, settingsChanged: true }, { players: eight })} /> },
   { id: 'host-rules', title: 'Rules', render: () => <HostRules view={hostView({ kind: 'RULES', skipAfterMs: 5_000 })} /> },
-  { id: 'host-intro-2', title: 'Round 2 intro', render: () => <HostRoundIntro view={hostView({ kind: 'ROUND_INTRO', roundNumber: 2, roundCount: 2, multiplier: 2, title: 'Open to anything' }, { round: 2 })} /> },
+  { id: 'host-intro-2', title: 'Round 2 intro', render: () => <HostRoundIntro view={hostView({ kind: 'ROUND_INTRO', roundNumber: 2, roundCount: 2, multiplier: 2, title: 'Open to anything', sitOutIds: [] }, { round: 2 })} /> },
+  { id: 'host-intro-sitout', title: 'Round 1 intro, one post each, one sits out', render: () => <HostRoundIntro view={hostView({ kind: 'ROUND_INTRO', roundNumber: 1, roundCount: 2, multiplier: 1, title: 'Open to work', sitOutIds: [id(104)] }, { round: 1, duels: 2 })} /> },
   {
     id: 'host-writing',
     title: 'Writing progress, 8 players',
     render: () => (
       <HostWriting
         view={hostView(
-          { kind: 'WRITING', progress: eight.map((p, i) => ({ playerId: p.id, locked: (i % 3) as 0 | 1 | 2 })), lockedTotal: 7, assignmentTotal: 16, extensionUsed: false },
-          { players: eight, duels: 8 },
+          { kind: 'WRITING', progress: eight.map((p, i) => ({ playerId: p.id, locked: (i % 3) as 0 | 1 | 2, total: 2 })), lockedTotal: 7, assignmentTotal: 16, extensionUsed: false },
+          { players: eight, duels: 8, settings: { postsPerPlayer: 2 } },
+        )}
+      />
+    ),
+  },
+  {
+    id: 'host-writing-one-post',
+    title: 'Writing progress, one post each, one judging',
+    render: () => (
+      <HostWriting
+        view={hostView(
+          { kind: 'WRITING', progress: players(5).map((p, i) => ({ playerId: p.id, locked: i === 1 || i === 2 ? 1 : 0, total: i === 4 ? 0 : 1 })), lockedTotal: 2, assignmentTotal: 4, extensionUsed: false },
+          { players: players(5), duels: 2 },
         )}
       />
     ),
@@ -153,23 +166,37 @@ const writerSelf = { role: 'WRITER' as const, side: 'A' as const, autoSubmitted:
 const phoneScenarios: Scenario[] = [
   { id: 'phone-lobby', title: 'Lobby, settings changed', render: () => { const view = playerView({ kind: 'LOBBY', readyCount: 3, settingsChanged: true }, { players: players(5, (_, i) => ({ ready: i > 0 })) }); return <Phone view={view}><ControllerLobby view={view} onLeft={() => {}} /></Phone>; } },
   { id: 'phone-rules', title: 'Rules', render: () => { const view = playerView({ kind: 'RULES', skipAfterMs: 5_000 }); return <Phone view={view}><ControllerRules view={view} /></Phone>; } },
-  { id: 'phone-intro', title: 'Round 2 intro', render: () => { const view = playerView({ kind: 'ROUND_INTRO', roundNumber: 2, roundCount: 2, multiplier: 2, title: 'Open to anything' }, { round: 2 }); return <Phone view={view}><ControllerRoundIntro view={view} /></Phone>; } },
-  { id: 'phone-writing', title: 'Writing, empty', render: () => { const view = playerView({ kind: 'WRITING', assignments: writingAssignments }); return <Phone view={view}><ControllerWriter view={view} connection={null} connected /></Phone>; } },
+  { id: 'phone-intro', title: 'Round 2 intro', render: () => { const view = playerView({ kind: 'ROUND_INTRO', roundNumber: 2, roundCount: 2, multiplier: 2, title: 'Open to anything', sitOutIds: [] }, { round: 2 }); return <Phone view={view}><ControllerRoundIntro view={view} /></Phone>; } },
+  { id: 'phone-intro-sitout', title: 'Round 1 intro, sitting out', render: () => { const view = playerView({ kind: 'ROUND_INTRO', roundNumber: 1, roundCount: 2, multiplier: 1, title: 'Open to work', sitOutIds: [id(100)] }, { round: 1 }); return <Phone view={view}><ControllerRoundIntro view={view} /></Phone>; } },
+  { id: 'phone-writing-single', title: 'Writing, one post each', render: () => { const view = playerView({ kind: 'WRITING', assignments: [writingAssignments[0]!] }); return <Phone view={view}><ControllerWriter view={view} connection={null} connected /></Phone>; } },
+  { id: 'phone-sitting-out', title: 'Writing, sitting out (judging)', render: () => { const view = playerView({ kind: 'WRITING', assignments: [] }); return <Phone view={view}><ControllerWriter view={view} connection={null} connected /></Phone>; } },
+  { id: 'phone-writing', title: 'Writing, two posts each, empty', render: () => { const view = playerView({ kind: 'WRITING', assignments: writingAssignments }, { settings: { postsPerPlayer: 2 } }); return <Phone view={view}><ControllerWriter view={view} connection={null} connected /></Phone>; } },
   {
     id: 'phone-writing-warning',
     title: 'Writing, last 15 seconds, one locked',
     render: () => {
       const view = playerView(
         { kind: 'WRITING', assignments: [{ ...writingAssignments[0]!, status: 'LOCKED', finalText: LONG_POST, draftText: LONG_POST, draftRevision: 3 }, writingAssignments[1]!] },
-        { phase: fixturePhase('WRITING', { remainingMs: 12_000 }) },
+        { phase: fixturePhase('WRITING', { remainingMs: 12_000 }), settings: { postsPerPlayer: 2 } },
       );
       return <Phone view={view}><ControllerWriter view={view} connection={null} connected /></Phone>;
     },
   },
-  { id: 'phone-writing-offline', title: 'Writing while reconnecting', render: () => { const view = playerView({ kind: 'WRITING', assignments: writingAssignments }); return <Phone view={view} status="reconnecting"><ControllerWriter view={view} connection={null} connected={false} /></Phone>; } },
+  { id: 'phone-writing-offline', title: 'Writing while reconnecting', render: () => { const view = playerView({ kind: 'WRITING', assignments: writingAssignments }, { settings: { postsPerPlayer: 2 } }); return <Phone view={view} status="reconnecting"><ControllerWriter view={view} connection={null} connected={false} /></Phone>; } },
   { id: 'phone-read-writer', title: 'READ as a writer (auto-submitted)', render: () => { const view = playerView({ kind: 'DUEL_READ', duelId: id(300), posts: posts.long, me: writerSelf }); return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>; } },
-  { id: 'phone-guess', title: 'GUESS as a reader', render: () => { const view = playerView({ kind: 'DUEL_GUESS', duelId: id(300), posts: posts.long, options: OPTIONS, lockedCount: 1, eligibleCount: 3, me: { ...readerSelf, guessOptionId: null } }); return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>; } },
-  { id: 'phone-guess-locked', title: 'GUESS, locked', render: () => { const view = playerView({ kind: 'DUEL_GUESS', duelId: id(300), posts: posts.short, options: OPTIONS, lockedCount: 2, eligibleCount: 3, me: { ...readerSelf, guessOptionId: OPTIONS[1]!.id } }); return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>; } },
+  { id: 'phone-guess', title: 'GUESS as a reader', render: () => { const view = playerView({ kind: 'DUEL_GUESS', duelId: id(300), posts: posts.long, options: OPTIONS, lockedCount: 1, eligibleCount: 3, me: { ...readerSelf, guessOptionId: null, guessPick: null } }); return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>; } },
+  {
+    id: 'phone-guess-urgent',
+    title: 'GUESS, picked but not locked, 6 seconds left',
+    render: () => {
+      const view = playerView(
+        { kind: 'DUEL_GUESS', duelId: id(300), posts: posts.short, options: OPTIONS, lockedCount: 1, eligibleCount: 3, me: { ...readerSelf, guessOptionId: null, guessPick: OPTIONS[2]!.id } },
+        { phase: fixturePhase('DUEL_GUESS', { remainingMs: 6_000, durationMs: 20_000 }) },
+      );
+      return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>;
+    },
+  },
+  { id: 'phone-guess-locked', title: 'GUESS, locked', render: () => { const view = playerView({ kind: 'DUEL_GUESS', duelId: id(300), posts: posts.short, options: OPTIONS, lockedCount: 2, eligibleCount: 3, me: { ...readerSelf, guessOptionId: OPTIONS[1]!.id, guessPick: null } }); return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>; } },
   {
     id: 'phone-endorse-forfeit',
     title: 'ENDORSE with a forfeited side',
@@ -183,8 +210,29 @@ const phoneScenarios: Scenario[] = [
         availableChoices: ['A', 'NEITHER'],
         lockedCount: 0,
         eligibleCount: 3,
-        me: { ...readerSelf, guessOptionId: OPTIONS[1]!.id, guessCorrect: true, endorsement: null },
+        me: { ...readerSelf, guessOptionId: OPTIONS[1]!.id, guessCorrect: true, endorsement: null, endorsementPick: null },
       });
+      return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>;
+    },
+  },
+  {
+    id: 'phone-endorse-urgent',
+    title: 'ENDORSE, nothing picked, 4 seconds left',
+    render: () => {
+      const view = playerView(
+        {
+          kind: 'DUEL_ENDORSE',
+          duelId: id(300),
+          posts: posts.short,
+          options: OPTIONS,
+          ...reveal,
+          availableChoices: ['A', 'B', 'NEITHER'],
+          lockedCount: 1,
+          eligibleCount: 3,
+          me: { ...readerSelf, guessOptionId: OPTIONS[1]!.id, guessCorrect: true, endorsement: null, endorsementPick: null },
+        },
+        { phase: fixturePhase('DUEL_ENDORSE', { remainingMs: 4_000, durationMs: 20_000 }) },
+      );
       return <Phone view={view}><ControllerDuel view={view} connection={null} connected /></Phone>;
     },
   },

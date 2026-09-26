@@ -11,7 +11,13 @@ export function ControllerRoundIntro({ view }: { view: PlayerView }) {
         Round {screen.roundNumber}: {screen.title}.
       </ScreenHeading>
       {screen.multiplier === 2 ? <span className="pill-yellow text-[18px]">DOUBLE CLOUT</span> : null}
-      <p className="text-[20px] font-semibold">Two posts. One timer.</p>
+      {screen.sitOutIds.includes(view.selfId) ? (
+        <p className="text-[20px] font-semibold" data-testid="sitting-out">
+          You're sitting this round out. You'll judge every post-off.
+        </p>
+      ) : (
+        <p className="text-[20px] font-semibold">{view.settings.postsPerPlayer === 1 ? 'One post. One timer.' : 'Two posts. One timer.'}</p>
+      )}
     </div>
   );
 }

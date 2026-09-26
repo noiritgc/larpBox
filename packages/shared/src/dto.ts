@@ -147,6 +147,8 @@ const RoundIntroScreenSchema = z.strictObject({
   roundCount: MultiplierSchema,
   multiplier: MultiplierSchema,
   title: z.string(),
+  /** Players who write nothing this round (one each, odd roster) and judge every post-off. */
+  sitOutIds: z.array(UuidSchema),
 });
 
 const DuelResultScreenBase = {
@@ -191,7 +193,8 @@ export const HostScreenSchema = z.discriminatedUnion('kind', [
   RoundIntroScreenSchema,
   z.strictObject({
     kind: z.literal('WRITING'),
-    progress: z.array(z.strictObject({ playerId: UuidSchema, locked: z.int().min(0).max(2) })),
+    /** Per player: posts locked out of posts assigned this round (0 assigned = sitting out). */
+    progress: z.array(z.strictObject({ playerId: UuidSchema, locked: z.int().min(0).max(2), total: z.int().min(0).max(2) })),
     lockedTotal: Count,
     assignmentTotal: Count,
     extensionUsed: z.boolean(),
@@ -279,7 +282,12 @@ export const PlayerScreenSchema = z.discriminatedUnion('kind', [
     options: z.array(GuessOptionSchema),
     lockedCount: Count,
     eligibleCount: Count,
-    me: z.strictObject({ ...DuelSelfShape, guessOptionId: UuidSchema.nullable() }),
+    me: z.strictObject({
+      ...DuelSelfShape,
+      guessOptionId: UuidSchema.nullable(),
+      /** Unlocked pick; it is locked automatically if time runs out first. */
+      guessPick: UuidSchema.nullable(),
+    }),
   }),
   z.strictObject({
     kind: z.literal('DUEL_ENDORSE'),
@@ -298,6 +306,8 @@ export const PlayerScreenSchema = z.discriminatedUnion('kind', [
       guessOptionId: UuidSchema.nullable(),
       guessCorrect: z.boolean().nullable(),
       endorsement: EndorsementSchema.nullable(),
+      /** Unlocked pick; locked automatically at the deadline (no pick counts as Neither). */
+      endorsementPick: EndorsementSchema.nullable(),
     }),
   }),
   z.strictObject({

@@ -10,6 +10,8 @@ import {
   SIDES,
   checkName,
   checkPost,
+  duelsPerRound,
+  writingSecondsFor,
   type Ack,
   type AckFailure,
   type AckSuccess,
@@ -19,6 +21,7 @@ import {
   type CommandPayload,
   type CreateRoomResponse,
   type DraftAckData,
+  type Endorsement,
   type ErrorCode,
   type JoinRoomResponse,
   type PauseReason,
@@ -634,6 +637,10 @@ export class GameEngine {
         return this.cmdLockGuess(entry, session, envelope.payload);
       case 'duel.lockEndorsement':
         return this.cmdLockEndorsement(entry, session, envelope.payload);
+      case 'duel.pickGuess':
+        return this.cmdPickGuess(entry, session, envelope.payload);
+      case 'duel.pickEndorsement':
+        return this.cmdPickEndorsement(entry, session, envelope.payload);
       case 'host.pause':
         return this.cmdPause(entry);
       case 'host.resume':
@@ -705,7 +712,7 @@ export class GameEngine {
     if (blocker) throw new GameError('FORBIDDEN', blocker.message);
 
     const rosterIds = playersBySeat(room).map((player) => player.id);
-    const needed = rosterIds.length * room.settings.roundCount;
+    const needed = duelsPerRound(rosterIds.length, room.settings.postsPerPlayer) * room.settings.roundCount;
     const packPrompts = promptsForPack(this.promptPack, room.settings.pack);
     if (packPrompts.length < needed) {
       throw new GameError(
@@ -716,7 +723,7 @@ export class GameEngine {
 
     const seed = this.newSeed();
     const rng = createSeededRandom(seed);
-    const plans = planRounds(rosterIds, room.settings.roundCount, rng);
+    const plans = planRounds(rosterIds, room.settings.roundCount, rng, room.settings.postsPerPlayer);
     const drawn = drawPrompts({ packPrompts, usedPromptIds: room.usedPromptIds, needed, rng });
     if (!drawn) throw new Error('unreachable: prompt count was checked above');
     const built = buildSchedule({ rosterIds, plans, prompts: drawn.prompts, rng, newId: this.newId });
@@ -738,6 +745,7 @@ export class GameEngine {
         roomId: room.id,
         players: rosterIds.length,
         rounds: room.settings.roundCount,
+        postsPerPlayer: room.settings.postsPerPlayer,
         repeatedPairings: built.rounds.map((round) => round.repeatedPairings),
         promptsReset: drawn.resetUsed,
       },
@@ -847,6 +855,7 @@ export class GameEngine {
       throw new GameError('CHOICE_UNAVAILABLE', 'That choice is not available.', { syncSession: true });
     }
     duel.guesses.set(player.id, payload.optionId);
+    duel.guessPicks.delete(player.id);
     this.checkEarlyCompletion(entry);
     return { audience: ALL };
   }
@@ -873,8 +882,59 @@ export class GameEngine {
       });
     }
     duel.endorsements.set(player.id, payload.choice);
+    duel.endorsementPicks.delete(player.id);
     this.checkEarlyCompletion(entry);
     return { audience: ALL };
+  }
+
+  /** Records an unlocked guess. Only the picker's own view shows it; nothing else changes. */
+  private cmdPickGuess(
+    entry: RoomEntry,
+    session: SessionRecord,
+    payload: CommandPayload<'duel.pickGuess'>,
+  ): HandlerResult {
+    const { room } = entry;
+    this.requirePhase(room, 'DUEL_GUESS');
+    this.requireUnpaused(room);
+    const player = this.requirePlayer(room, session);
+    const duel = this.requireCurrentDuel(room, payload.duelId);
+    if (!duel.readerIds.includes(player.id)) {
+      throw new GameError('FORBIDDEN', 'You already know this one. Writers sit it out.');
+    }
+    if (duel.guesses.has(player.id)) {
+      throw new GameError('ALREADY_LOCKED', 'Your guess is already locked.', { syncSession: true });
+    }
+    if (!duel.options.some((option) => option.id === payload.optionId)) {
+      throw new GameError('CHOICE_UNAVAILABLE', 'That choice is not available.', { syncSession: true });
+    }
+    duel.guessPicks.set(player.id, payload.optionId);
+    return { audience: { kind: 'player', playerId: player.id } };
+  }
+
+  /** Records an unlocked endorsement. Only the picker's own view shows it. */
+  private cmdPickEndorsement(
+    entry: RoomEntry,
+    session: SessionRecord,
+    payload: CommandPayload<'duel.pickEndorsement'>,
+  ): HandlerResult {
+    const { room } = entry;
+    this.requirePhase(room, 'DUEL_ENDORSE');
+    this.requireUnpaused(room);
+    const player = this.requirePlayer(room, session);
+    const duel = this.requireCurrentDuel(room, payload.duelId);
+    if (!duel.readerIds.includes(player.id)) {
+      throw new GameError('FORBIDDEN', 'Writers cannot endorse their own post-off.');
+    }
+    if (duel.endorsements.has(player.id)) {
+      throw new GameError('ALREADY_LOCKED', 'Your endorsement is already recorded.', { syncSession: true });
+    }
+    if (!availableChoices(requireGame(room), duel).includes(payload.choice)) {
+      throw new GameError('CHOICE_UNAVAILABLE', 'That post was not submitted, so it cannot be endorsed.', {
+        syncSession: true,
+      });
+    }
+    duel.endorsementPicks.set(player.id, payload.choice);
+    return { audience: { kind: 'player', playerId: player.id } };
   }
 
   private cmdPause(entry: RoomEntry): HandlerResult {
@@ -1069,7 +1129,7 @@ export class GameEngine {
 
   /**
    * Ends GUESS/ENDORSE early once every eligible reader locked, but never before the minimum
-   * active display time (5s / 8s); WRITING ends as soon as all 2N assignments are locked.
+   * active display time (5s / 8s); WRITING ends as soon as every assignment of the round is locked.
    * Returns true when the phase changed.
    */
   private checkEarlyCompletion(entry: RoomEntry): boolean {
@@ -1117,7 +1177,7 @@ export class GameEngine {
         this.enterRoundIntro(entry, 0);
         return;
       case 'ROUND_INTRO':
-        this.enterPhase(entry, 'WRITING', this.scaled(room.settings.writingSeconds * 1000));
+        this.enterPhase(entry, 'WRITING', this.scaled(writingSecondsFor(room.settings) * 1000));
         return;
       case 'WRITING':
         this.finalizeWriting(entry);
@@ -1127,9 +1187,11 @@ export class GameEngine {
         this.enterPhase(entry, 'DUEL_GUESS', this.scaled(room.settings.guessSeconds * 1000));
         return;
       case 'DUEL_GUESS':
+        this.finalizeGuesses(currentDuel(game));
         this.enterPhase(entry, 'DUEL_ENDORSE', this.scaled(room.settings.endorseSeconds * 1000));
         return;
       case 'DUEL_ENDORSE':
+        this.finalizeEndorsements(entry, currentDuel(game));
         this.settleDuel(entry, currentDuel(game));
         this.enterPhase(entry, 'DUEL_RESULT', this.scaled(PHASE_TIMINGS_MS.duelResult));
         return;
@@ -1179,6 +1241,32 @@ export class GameEngine {
         assignment.finalText = null;
       }
     }
+  }
+
+  /** Guess deadline: an unlocked pick counts as the reader's guess. No pick means no guess. */
+  private finalizeGuesses(duel: Duel): void {
+    for (const [playerId, optionId] of duel.guessPicks) {
+      if (!duel.guesses.has(playerId) && duel.readerIds.includes(playerId)) duel.guesses.set(playerId, optionId);
+    }
+    duel.guessPicks.clear();
+  }
+
+  /**
+   * Endorsement deadline: an unlocked pick counts as the reader's endorsement. A reader who is
+   * connected but picked nothing counts as Neither; a disconnected reader casts no ballot, so a
+   * dead phone doesn't dilute everyone's points.
+   */
+  private finalizeEndorsements(entry: RoomEntry, duel: Duel): void {
+    const available = availableChoices(requireGame(entry.room), duel);
+    for (const playerId of duel.readerIds) {
+      if (duel.endorsements.has(playerId)) continue;
+      const pick = duel.endorsementPicks.get(playerId);
+      let choice: Endorsement | null = null;
+      if (pick !== undefined && available.includes(pick)) choice = pick;
+      else if (entry.room.players.get(playerId)?.connected) choice = 'NEITHER';
+      if (choice) duel.endorsements.set(playerId, choice);
+    }
+    duel.endorsementPicks.clear();
   }
 
   private startDuel(entry: RoomEntry, duelIndex: number): void {

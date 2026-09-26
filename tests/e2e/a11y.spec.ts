@@ -51,7 +51,7 @@ test('static pages have no automated accessibility violations', async ({ browser
 });
 
 test('live lobby, writing and duel screens have no automated accessibility violations', async ({ browser }) => {
-  host = await hostRoom(browser, { quick: true, writingSeconds: 180, guessSeconds: 30, endorseSeconds: 30 });
+  host = await hostRoom(browser, { quick: true, secondsPerPost: 90, guessSeconds: 30, endorseSeconds: 30 });
   await expectNoViolations(host.page, 'host lobby (empty)');
   const guest = await joinPlayer(browser, host.code, 'Guest');
   players = [guest];

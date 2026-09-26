@@ -13,11 +13,12 @@ import {
 import { GameError } from './engine.js';
 import { currentDuel, remainingMs } from './state.js';
 
-function expectedPhaseSequence(n: number, rounds: 1 | 2): Phase[] {
+/** `duels`: post-offs per round (N with two posts each, floor(N / 2) with one each). */
+function expectedPhaseSequence(duels: number, rounds: 1 | 2): Phase[] {
   const out: Phase[] = ['RULES'];
   for (let r = 0; r < rounds; r += 1) {
     out.push('ROUND_INTRO', 'WRITING');
-    for (let d = 0; d < n; d += 1) out.push('DUEL_READ', 'DUEL_GUESS', 'DUEL_ENDORSE', 'DUEL_RESULT');
+    for (let d = 0; d < duels; d += 1) out.push('DUEL_READ', 'DUEL_GUESS', 'DUEL_ENDORSE', 'DUEL_RESULT');
     if (r < rounds - 1) out.push('ROUND_SCOREBOARD');
   }
   out.push('FINAL');
@@ -63,6 +64,40 @@ describe('complete games', () => {
         const final = h.hostView(room);
         if (final.screen.kind !== 'FINAL') throw new Error('expected FINAL');
         expect(final.screen.rows).toHaveLength(n);
+      });
+    }
+  }
+
+  for (const n of [3, 4, 5, 6, 7, 8]) {
+    for (const roundCount of [2, 1] as const) {
+      it(`N=${n} ${roundCount === 2 ? 'Standard' : 'Quick'}, one post each: pairs, sit-outs, exact scores`, () => {
+        const h = new EngineHarness();
+        const room = h.lobby(n, { roundCount, postsPerPlayer: 1 });
+        h.start(room);
+        const { duels, phases } = playGame(h, room);
+        const perRound = Math.floor(n / 2);
+        expect(phases).toEqual(expectedPhaseSequence(perRound, roundCount));
+        expect(duels).toHaveLength(perRound * roundCount);
+        const game = h.entry(room).room.game;
+        if (!game) throw new Error('no game');
+        const sitOuts: string[] = [];
+        for (let r = 1; r <= roundCount; r += 1) {
+          const inRound = duels.filter((d) => d.roundNumber === r);
+          const round = game.rounds[r - 1];
+          if (!round) throw new Error('missing round');
+          expect(round.sitOutIds).toHaveLength(n % 2);
+          sitOuts.push(...round.sitOutIds);
+          for (const player of room.players) {
+            const writes = inRound.filter((d) => d.writerA === player.id || d.writerB === player.id);
+            expect(writes).toHaveLength(round.sitOutIds.includes(player.id) ? 0 : 1);
+          }
+          // Whoever sits out reads every post-off of the round.
+          for (const d of inRound) for (const id of round.sitOutIds) expect(d.readers).toContain(id);
+        }
+        // Nobody sits out twice.
+        expect(new Set(sitOuts).size).toBe(sitOuts.length);
+        const roster = room.players.map((p) => p.id);
+        expect(scoresOf(h, room)).toEqual(expectedScores(roster, duels));
       });
     }
   }
@@ -147,10 +182,10 @@ describe('lobby', () => {
     const h = new EngineHarness();
     const room = h.lobby(3);
     h.expectOk(
-      h.send(room, 'host', 'host.updateSettings', { settings: { ...DEFAULT_SETTINGS, writingSeconds: 120 } }),
+      h.send(room, 'host', 'host.updateSettings', { settings: { ...DEFAULT_SETTINGS, secondsPerPost: 90 } }),
     );
     const view = h.playerView(room, room.players[0]!);
-    expect(view.settings.writingSeconds).toBe(120);
+    expect(view.settings.secondsPerPost).toBe(90);
     expect(view.players.every((p) => !p.ready)).toBe(true);
     expect(view.screen).toMatchObject({ kind: 'LOBBY', settingsChanged: true });
   });
@@ -458,18 +493,30 @@ describe('timers', () => {
     expect(h.phase(room)).toBe('DUEL_RESULT');
   });
 
-  it('runs the full countdown when readers stay silent, then settles with no ballots', () => {
+  it('runs the full countdown when readers stay silent; connected silent readers count as Neither', () => {
     const { h, room } = inGuess();
     h.clock.advance(19_999);
     expect(h.phase(room)).toBe('DUEL_GUESS');
     h.clock.advance(1);
     expect(h.phase(room)).toBe('DUEL_ENDORSE');
+    const readers = h.readersOfCurrentDuel(room).length;
     h.clock.advance(20_000);
     expect(h.phase(room)).toBe('DUEL_RESULT');
     const view = h.hostView(room);
     if (view.screen.kind !== 'DUEL_RESULT') throw new Error('expected result');
-    expect(view.screen.result).toMatchObject({ ballotsCast: 0, stamp: 'NO_ENDORSEMENTS' });
+    expect(view.screen.result).toMatchObject({ ballotsCast: readers, votesNeither: readers, stamp: 'NO_ENDORSEMENTS' });
+    expect(view.screen.result.correctGuesserIds).toEqual([]);
     expect(view.screen.result.sides.A.points + view.screen.result.sides.B.points).toBe(0);
+  });
+
+  it('casts no ballot for readers who are offline when endorsing ends', () => {
+    const { h, room } = inGuess();
+    h.advanceUntil(room, 'DUEL_ENDORSE');
+    for (const reader of h.readersOfCurrentDuel(room)) h.disconnectPlayer(room, reader);
+    h.clock.advance(20_000);
+    const view = h.hostView(room);
+    if (view.screen.kind !== 'DUEL_RESULT') throw new Error('expected result');
+    expect(view.screen.result).toMatchObject({ ballotsCast: 0, votesNeither: 0, stamp: 'NO_ENDORSEMENTS' });
   });
 
   it('pause freezes both the deadline and the minimum-display clock', () => {
@@ -911,5 +958,181 @@ describe('room lifetime', () => {
     expect(h.engine.store.get(room.roomId)).toBeUndefined();
     expect(h.publisher.closed.at(-1)?.payload.reason).toBe('HOST_ENDED');
     expect(h.clock.pendingTimerCount()).toBe(0);
+  });
+});
+
+describe('one post each', () => {
+  it('pairs players, tells everyone who sits out, and gives the sit-out nothing to write', () => {
+    const h = new EngineHarness();
+    const room = h.lobby(5, { postsPerPlayer: 1 });
+    h.start(room);
+    h.advanceUntil(room, 'ROUND_INTRO');
+    const intro = h.hostView(room);
+    if (intro.screen.kind !== 'ROUND_INTRO') throw new Error('expected ROUND_INTRO');
+    expect(intro.screen.sitOutIds).toHaveLength(1);
+    const sitOutId = intro.screen.sitOutIds[0]!;
+    expect(intro.duelsInRound).toBe(2);
+
+    h.advanceUntil(room, 'WRITING');
+    for (const player of room.players) {
+      const view = h.playerView(room, player);
+      if (view.screen.kind !== 'WRITING') throw new Error('expected WRITING');
+      expect(view.screen.assignments).toHaveLength(player.id === sitOutId ? 0 : 1);
+    }
+    const writing = h.hostView(room);
+    if (writing.screen.kind !== 'WRITING') throw new Error('expected WRITING');
+    expect(writing.screen.assignmentTotal).toBe(4);
+    for (const entry of writing.screen.progress) expect(entry.total).toBe(entry.playerId === sitOutId ? 0 : 1);
+
+    // Writing ends as soon as the four writers lock; the sit-out has nothing to lock.
+    h.lockAllPosts(room, room.players.filter((player) => player.id !== sitOutId));
+    expect(h.phase(room)).toBe('DUEL_READ');
+    expect(h.readersOfCurrentDuel(room).map((player) => player.id)).toContain(sitOutId);
+  });
+
+  it('has no sit-out with an even roster', () => {
+    const h = new EngineHarness();
+    const room = h.lobby(4, { postsPerPlayer: 1, roundCount: 1 });
+    h.start(room);
+    h.advanceUntil(room, 'ROUND_INTRO');
+    const intro = h.hostView(room);
+    if (intro.screen.kind !== 'ROUND_INTRO') throw new Error('expected ROUND_INTRO');
+    expect(intro.screen.sitOutIds).toEqual([]);
+    expect(intro.duelsInRound).toBe(2);
+  });
+
+  it('writes for secondsPerPost times postsPerPlayer', () => {
+    for (const [postsPerPlayer, secondsPerPost, expected] of [
+      [1, 60, 60_000],
+      [2, 60, 120_000],
+      [1, 45, 45_000],
+      [2, 90, 180_000],
+    ] as const) {
+      const h = new EngineHarness();
+      const room = h.lobby(4, { postsPerPlayer, secondsPerPost });
+      h.start(room);
+      h.advanceUntil(room, 'WRITING');
+      expect(h.hostView(room).phase.durationMs).toBe(expected);
+    }
+  });
+
+  it('puts a different player out in round 2 even with three players', () => {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const h = new EngineHarness();
+      const room = h.lobby(3, { postsPerPlayer: 1 });
+      h.start(room);
+      const game = h.entry(room).room.game;
+      if (!game) throw new Error('no game');
+      const [first, second] = game.rounds;
+      expect(first?.sitOutIds).toHaveLength(1);
+      expect(second?.sitOutIds).toHaveLength(1);
+      expect(second?.sitOutIds[0]).not.toBe(first?.sitOutIds[0]);
+    }
+  });
+});
+
+describe('picks at the deadline', () => {
+  function inGuess(n = 5) {
+    const h = new EngineHarness();
+    const room = h.lobby(n);
+    h.start(room);
+    h.advanceUntil(room, 'WRITING');
+    h.lockAllPosts(room);
+    h.advanceUntil(room, 'DUEL_GUESS');
+    return { h, room };
+  }
+
+  it('locks an unlocked guess pick when time runs out; the pick is private until then', () => {
+    const { h, room } = inGuess();
+    const [picker, silent] = h.readersOfCurrentDuel(room);
+    if (!picker || !silent) throw new Error('need two readers');
+    const view = h.playerView(room, picker);
+    if (view.screen.kind !== 'DUEL_GUESS') throw new Error('expected guess');
+    const correct = currentDuel(h.entry(room).room.game!).correctOptionId;
+    const wrong = view.screen.options.find((option) => option.id !== correct)!.id;
+    h.expectOk(h.send(room, picker, 'duel.pickGuess', { duelId: view.screen.duelId, optionId: wrong }));
+    h.expectOk(h.send(room, picker, 'duel.pickGuess', { duelId: view.screen.duelId, optionId: correct }));
+
+    const mine = h.playerView(room, picker);
+    if (mine.screen.kind !== 'DUEL_GUESS') throw new Error('expected guess');
+    expect(mine.screen.me).toMatchObject({ guessPick: correct, guessOptionId: null });
+    expect(mine.screen.lockedCount).toBe(0);
+    const theirs = h.playerView(room, silent);
+    if (theirs.screen.kind !== 'DUEL_GUESS') throw new Error('expected guess');
+    expect(theirs.screen.me.guessPick).toBeNull();
+    expect(JSON.stringify(h.hostView(room))).not.toContain('guessPick');
+
+    h.clock.advance(20_000);
+    expect(h.phase(room)).toBe('DUEL_ENDORSE');
+    const after = h.playerView(room, picker);
+    if (after.screen.kind !== 'DUEL_ENDORSE') throw new Error('expected endorse');
+    expect(after.screen.me).toMatchObject({ guessOptionId: correct, guessCorrect: true });
+    const other = h.playerView(room, silent);
+    if (other.screen.kind !== 'DUEL_ENDORSE') throw new Error('expected endorse');
+    expect(other.screen.me.guessOptionId).toBeNull();
+
+    h.advanceUntil(room, 'DUEL_RESULT');
+    const result = h.hostView(room);
+    if (result.screen.kind !== 'DUEL_RESULT') throw new Error('expected result');
+    expect(result.screen.result.correctGuesserIds).toEqual([picker.id]);
+  });
+
+  it('keeps a locked guess over an earlier pick and refuses picks after locking', () => {
+    const { h, room } = inGuess();
+    const reader = h.readersOfCurrentDuel(room)[0]!;
+    const view = h.playerView(room, reader);
+    if (view.screen.kind !== 'DUEL_GUESS') throw new Error('expected guess');
+    const [first, second] = view.screen.options;
+    h.expectOk(h.send(room, reader, 'duel.pickGuess', { duelId: view.screen.duelId, optionId: first!.id }));
+    h.expectOk(h.send(room, reader, 'duel.lockGuess', { duelId: view.screen.duelId, optionId: second!.id }));
+    const late = h.send(room, reader, 'duel.pickGuess', { duelId: view.screen.duelId, optionId: first!.id });
+    expect(late.ok ? null : late.code).toBe('ALREADY_LOCKED');
+    h.clock.advance(20_000);
+    const after = h.playerView(room, reader);
+    if (after.screen.kind !== 'DUEL_ENDORSE') throw new Error('expected endorse');
+    expect(after.screen.me.guessOptionId).toBe(second!.id);
+  });
+
+  it('locks endorsement picks, counts silent connected readers as Neither, and skips offline readers', () => {
+    const { h, room } = inGuess(6);
+    h.advanceUntil(room, 'DUEL_ENDORSE');
+    const [picker, silent, offline] = h.readersOfCurrentDuel(room);
+    if (!picker || !silent || !offline) throw new Error('need three readers');
+    const readers = h.readersOfCurrentDuel(room);
+    const view = h.playerView(room, picker);
+    if (view.screen.kind !== 'DUEL_ENDORSE') throw new Error('expected endorse');
+    h.expectOk(h.send(room, picker, 'duel.pickEndorsement', { duelId: view.screen.duelId, choice: 'B' }));
+    h.expectOk(h.send(room, picker, 'duel.pickEndorsement', { duelId: view.screen.duelId, choice: 'A' }));
+    const mine = h.playerView(room, picker);
+    if (mine.screen.kind !== 'DUEL_ENDORSE') throw new Error('expected endorse');
+    expect(mine.screen.me).toMatchObject({ endorsementPick: 'A', endorsement: null });
+    h.disconnectPlayer(room, offline);
+
+    h.clock.advance(20_000);
+    const result = h.hostView(room);
+    if (result.screen.kind !== 'DUEL_RESULT') throw new Error('expected result');
+    // One A, then Neither for every other connected reader; the offline reader casts nothing.
+    const neither = readers.length - 2;
+    expect(result.screen.result).toMatchObject({ ballotsCast: readers.length - 1, votesNeither: neither });
+    expect(result.screen.result.sides.A.votes).toBe(1);
+    expect(result.screen.result.sides.A.points).toBe(Math.floor(1000 / (readers.length - 1)));
+  });
+
+  it('refuses picks from writers, for unavailable choices, in the wrong phase and while paused', () => {
+    const { h, room } = inGuess();
+    const writers = h.writersOfCurrentDuel(room);
+    const reader = h.readersOfCurrentDuel(room)[0]!;
+    const view = h.playerView(room, reader);
+    if (view.screen.kind !== 'DUEL_GUESS') throw new Error('expected guess');
+    const optionId = view.screen.options[0]!.id;
+    const writer = h.send(room, writers.A, 'duel.pickGuess', { duelId: view.screen.duelId, optionId });
+    expect(writer.ok ? null : writer.code).toBe('FORBIDDEN');
+    const unknown = h.send(room, reader, 'duel.pickGuess', { duelId: view.screen.duelId, optionId: randomUUID() });
+    expect(unknown.ok ? null : unknown.code).toBe('CHOICE_UNAVAILABLE');
+    const wrongPhase = h.send(room, reader, 'duel.pickEndorsement', { duelId: view.screen.duelId, choice: 'A' });
+    expect(wrongPhase.ok ? null : wrongPhase.code).toBe('FORBIDDEN');
+    h.expectOk(h.send(room, 'host', 'host.pause', {}));
+    const paused = h.send(room, reader, 'duel.pickGuess', { duelId: view.screen.duelId, optionId });
+    expect(paused.ok ? null : paused.code).toBe('GAME_PAUSED');
   });
 });

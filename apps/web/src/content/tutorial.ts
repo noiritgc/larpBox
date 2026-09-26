@@ -5,7 +5,7 @@
 export const TUTORIAL_STEPS = [
   {
     title: 'Inflate it.',
-    body: 'You privately get two ordinary things you did. Write each one up as a career milestone: exaggerate the language, not the facts.',
+    body: 'You privately get something ordinary you did. Write it up as a career milestone: exaggerate the language, not the facts.',
   },
   {
     title: 'Decode it.',
@@ -28,4 +28,5 @@ export const SCORING_SUMMARY = [
   'Writers split up to 1,000 Clout per post-off by their share of endorsements. "Neither" counts as a ballot.',
   'Readers earn 250 Clout for picking what actually happened.',
   'Round 2 doubles everything.',
+  "Out of time? A pick you didn't lock still counts. No endorsement pick counts as Neither.",
 ] as const;

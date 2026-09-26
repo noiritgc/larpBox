@@ -50,7 +50,8 @@ for (const size of [
     hostPage.on('pageerror', (error) => pageErrors.push(`host: ${error.message}`));
     await hostPage.goto('/host/new');
     await hostPage.getByRole('radio', { name: 'Quick: 1 round' }).click();
-    await hostPage.getByRole('radiogroup', { name: 'Writing time per round' }).getByRole('radio', { name: '180s' }).click();
+    await hostPage.getByRole('radiogroup', { name: 'Posts per player' }).getByRole('radio', { name: 'Two each' }).click();
+    await hostPage.getByRole('radiogroup', { name: 'Writing time per post' }).getByRole('radio', { name: '90s' }).click();
     await hostPage.getByRole('radiogroup', { name: 'Fact-guess time' }).getByRole('radio', { name: '30s' }).click();
     await hostPage.getByRole('radiogroup', { name: 'Endorse time' }).getByRole('radio', { name: '30s' }).click();
     await hostPage.getByTestId('create-room').click();

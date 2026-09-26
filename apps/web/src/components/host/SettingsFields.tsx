@@ -1,4 +1,4 @@
-import { PACK_LABELS, PACKS, ROUND_COUNT_LABELS, type RoomSettings } from '@larpbox/shared';
+import { PACK_LABELS, PACKS, POSTS_PER_PLAYER_LABELS, ROUND_COUNT_LABELS, writingSecondsFor, type RoomSettings } from '@larpbox/shared';
 import { ChoiceGroup } from '../ui/ChoiceGroup';
 
 function Group({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
@@ -35,16 +35,31 @@ export function SettingsFields({
           choices={([2, 1] as const).map((count) => ({ value: count, label: ROUND_COUNT_LABELS[count] }))}
         />
       </Group>
-      <Group title="Writing time per round" hint="Everyone writes two posts in this time.">
-        <ChoiceGroup
-          label="Writing time per round"
-          layout="segmented"
-          disabled={disabled}
-          value={value.writingSeconds}
-          onChange={(writingSeconds) => onChange({ ...value, writingSeconds })}
-          choices={([90, 120, 180] as const).map((seconds) => ({ value: seconds, label: `${seconds}s` }))}
-        />
-      </Group>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Group
+          title="Posts per player"
+          hint={value.postsPerPlayer === 1 ? 'Players pair up. With an odd number, one person judges instead.' : 'More post-offs per round.'}
+        >
+          <ChoiceGroup
+            label="Posts per player"
+            layout="segmented"
+            disabled={disabled}
+            value={value.postsPerPlayer}
+            onChange={(postsPerPlayer) => onChange({ ...value, postsPerPlayer })}
+            choices={([1, 2] as const).map((count) => ({ value: count, label: POSTS_PER_PLAYER_LABELS[count] }))}
+          />
+        </Group>
+        <Group title="Writing time per post" hint={`Writing lasts ${writingSecondsFor(value)} seconds each round.`}>
+          <ChoiceGroup
+            label="Writing time per post"
+            layout="segmented"
+            disabled={disabled}
+            value={value.secondsPerPost}
+            onChange={(secondsPerPost) => onChange({ ...value, secondsPerPost })}
+            choices={([45, 60, 90] as const).map((seconds) => ({ value: seconds, label: `${seconds}s` }))}
+          />
+        </Group>
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <Group title="Fact-guess time">
           <ChoiceGroup

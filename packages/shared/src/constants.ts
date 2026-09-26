@@ -115,11 +115,17 @@ export const PACK_LABELS: Record<PackId, string> = {
 
 export const SETTINGS_CHOICES = {
   roundCount: [1, 2],
-  writingSeconds: [90, 120, 180],
+  postsPerPlayer: [1, 2],
+  secondsPerPost: [45, 60, 90],
   guessSeconds: [20, 30],
   endorseSeconds: [20, 30],
   pack: PACKS,
 } as const;
+
+export const POSTS_PER_PLAYER_LABELS: Record<1 | 2, string> = {
+  1: 'One each',
+  2: 'Two each',
+};
 
 export const ROUND_COUNT_LABELS: Record<1 | 2, string> = {
   1: 'Quick: 1 round',

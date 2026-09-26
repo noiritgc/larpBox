@@ -63,10 +63,16 @@ export async function api<T>(
   return { status: response.status, body: (await response.json()) as T & Partial<ApiError> };
 }
 
+/**
+ * Integration tests default to two posts each with 90 seconds of writing, the rules they were
+ * written against. Tests of the one-post default pass `postsPerPlayer: 1` explicitly.
+ */
+export const INTEGRATION_SETTINGS: RoomSettings = { ...DEFAULT_SETTINGS, postsPerPlayer: 2, secondsPerPost: 45 };
+
 export async function createRoom(server: TestServer, settings: Partial<RoomSettings> = {}): Promise<CreateRoomResponse> {
   const { status, body } = await api<CreateRoomResponse>(server, 'POST', '/api/rooms', {
     createRequestId: randomUUID(),
-    settings: { ...DEFAULT_SETTINGS, ...settings },
+    settings: { ...INTEGRATION_SETTINGS, ...settings },
   });
   if (status !== 201) throw new Error(`create failed: ${status} ${JSON.stringify(body)}`);
   return body;

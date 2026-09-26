@@ -274,7 +274,7 @@ describe('isolation and limits', () => {
     const other = await setupTable(server, 3);
     try {
       expect((await table.host.command('host.startGame', {})).ok).toBe(true);
-      expect((await other.host.command('host.updateSettings', { settings: { roundCount: 1, writingSeconds: 120, guessSeconds: 30, endorseSeconds: 30, pack: 'everyday' } })).ok).toBe(true);
+      expect((await other.host.command('host.updateSettings', { settings: { roundCount: 1, postsPerPlayer: 2, secondsPerPost: 60, guessSeconds: 30, endorseSeconds: 30, pack: 'everyday' } })).ok).toBe(true);
       await sleep(100);
       for (const client of [table.host, ...table.players.map((p) => p.client)]) {
         expect(client.views.every((v: RoomView) => v.roomId === table!.room.roomId)).toBe(true);
@@ -352,6 +352,66 @@ describe('complete games over sockets', () => {
     for (const { join } of table.players) {
       expect([...game.assignments.values()].filter((a) => a.playerId === join.playerId)).toHaveLength(2);
     }
+  });
+
+  it('plays a 5-player Standard game with one post each: two post-offs a round, a new sit-out each round', async () => {
+    server = await startServer();
+    table = await setupTable(server, 5, { postsPerPlayer: 1, secondsPerPost: 60 });
+    expect((await table.host.command('host.startGame', {})).ok).toBe(true);
+    const phases = await playOverSockets(server, table);
+    expect(phases.filter((p) => p === 'DUEL_RESULT')).toHaveLength(4);
+    const game = engineRoom(server, table.room.roomId).game!;
+    const sitOuts = game.rounds.flatMap((round) => round.sitOutIds);
+    expect(sitOuts).toHaveLength(2);
+    expect(new Set(sitOuts).size).toBe(2);
+    expect(game.assignments.size).toBe(8);
+    expect([...game.assignments.values()].every((a) => a.status === 'LOCKED')).toBe(true);
+  });
+
+  it('locks a picked guess and endorsement when time runs out', async () => {
+    server = await startServer();
+    table = await setupTable(server, 3, { postsPerPlayer: 1, roundCount: 1 });
+    expect((await table.host.command('host.startGame', {})).ok).toBe(true);
+    const roomId = table.room.roomId;
+    for (const phase of ['RULES', 'ROUND_INTRO']) {
+      expect(engineRoom(server, roomId).phase.name).toBe(phase);
+      advancePast(server, roomId, engineRoom(server, roomId).phase.id);
+    }
+    await syncAll(table, engineRoom(server, roomId).phase.id);
+    for (const { client } of table.players) {
+      const view = client.player();
+      if (view.screen.kind !== 'WRITING') throw new Error('expected WRITING');
+      for (const assignment of view.screen.assignments) {
+        const text = `Humbled to announce a milestone from ${view.selfId.slice(-4)}.`;
+        expect((await client.command('writing.lockPost', { assignmentId: assignment.id, text, expectedDraftRevision: assignment.draftRevision })).ok).toBe(true);
+      }
+    }
+    advancePast(server, roomId, engineRoom(server, roomId).phase.id);
+    expect(engineRoom(server, roomId).phase.name).toBe('DUEL_GUESS');
+    await syncAll(table, engineRoom(server, roomId).phase.id);
+    // With three players and one post each, the sit-out is the only reader.
+    const reader = table.players.find(({ client }) => {
+      const screen = client.player().screen;
+      return screen.kind === 'DUEL_GUESS' && screen.me.role === 'READER';
+    })!;
+    const guess = reader.client.player().screen;
+    if (guess.kind !== 'DUEL_GUESS') throw new Error('expected DUEL_GUESS');
+    const optionId = guess.options[2]!.id;
+    expect((await reader.client.command('duel.pickGuess', { duelId: guess.duelId, optionId })).ok).toBe(true);
+    const picked = await reader.client.waitFor((v) => v.role === 'player' && v.screen.kind === 'DUEL_GUESS' && v.screen.me.guessPick === optionId);
+    expect(picked.screen.kind).toBe('DUEL_GUESS');
+
+    advancePast(server, roomId, engineRoom(server, roomId).phase.id);
+    const endorse = await reader.client.waitForPhase('DUEL_ENDORSE');
+    if (endorse.screen.kind !== 'DUEL_ENDORSE' || endorse.role !== 'player') throw new Error('expected DUEL_ENDORSE');
+    expect(endorse.screen.me.guessOptionId).toBe(optionId);
+    expect((await reader.client.command('duel.pickEndorsement', { duelId: endorse.screen.duelId, choice: 'B' })).ok).toBe(true);
+
+    advancePast(server, roomId, engineRoom(server, roomId).phase.id);
+    const result = await table.host.waitForPhase('DUEL_RESULT');
+    if (result.screen.kind !== 'DUEL_RESULT') throw new Error('expected DUEL_RESULT');
+    expect(result.screen.result).toMatchObject({ ballotsCast: 1, votesNeither: 0 });
+    expect(result.screen.result.sides.B.votes).toBe(1);
   });
 
   it('rematches, dropping the disconnected player and invalidating their token', async () => {

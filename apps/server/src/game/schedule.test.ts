@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadPromptPack, promptsForPack } from '../content/loadPrompts.js';
 import { sequentialIds } from '../testing/harness.js';
 import { createSeededRandom } from './random.js';
-import { buildSchedule, drawPrompts, edgeKey, planRounds, ringEdges, ROUND_TWO_CANDIDATES } from './schedule.js';
+import { buildSchedule, drawPrompts, edgeKey, matchingPairs, planRounds, ringEdges, ROUND_TWO_CANDIDATES } from './schedule.js';
 
 const pack = loadPromptPack();
 const roster = (n: number) => Array.from({ length: n }, (_, i) => `player-${i}`);
@@ -161,3 +161,52 @@ describe('prompt drawing', () => {
     expect(used.has('campus-work-typo')).toBe(true);
   });
 });
+
+describe('one-post scheduling', () => {
+  it('pairs consecutive players and leaves the last one out of an odd roster', () => {
+    expect(matchingPairs(['a', 'b', 'c', 'd'])).toEqual({ pairs: [['a', 'b'], ['c', 'd']], sitOutIds: [] });
+    expect(matchingPairs(['a', 'b', 'c', 'd', 'e'])).toEqual({ pairs: [['a', 'b'], ['c', 'd']], sitOutIds: ['e'] });
+  });
+
+  for (const n of [3, 4, 5, 6, 7, 8]) {
+    for (const seed of ['seed', 'another', 'third']) {
+      it(`N=${n} (${seed}): everyone but the sit-out writes once per round; nobody sits out twice`, () => {
+        const ids = roster(n);
+        const plans = planRounds(ids, 2, createSeededRandom(seed), 1);
+        const sitOuts: string[] = [];
+        for (const plan of plans) {
+          expect(plan.pairs).toHaveLength(Math.floor(n / 2));
+          expect(plan.sitOutIds).toHaveLength(n % 2);
+          expect([...plan.order].sort((a, b) => a - b)).toEqual(plan.pairs.map((_, index) => index));
+          const writers = plan.pairs.flat();
+          expect(new Set(writers).size).toBe(writers.length);
+          expect([...writers, ...plan.sitOutIds].sort()).toEqual([...ids].sort());
+          for (const [a, b] of plan.pairs) expect(a).not.toBe(b);
+          sitOuts.push(...plan.sitOutIds);
+        }
+        expect(new Set(sitOuts).size).toBe(sitOuts.length);
+        // With four or more players, round 2 can always avoid repeating a pair.
+        if (n >= 4) expect(plans[1]?.repeatedPairings).toBe(0);
+      });
+    }
+  }
+
+  it('builds one duel per pair with the sit-out reading every duel', () => {
+    const rng = createSeededRandom('seed');
+    const ids = roster(5);
+    const plans = planRounds(ids, 1, rng, 1);
+    const drawn = drawPrompts({ packPrompts: promptsForPack(pack, 'mixed'), usedPromptIds: new Set(), needed: 2, rng });
+    if (!drawn) throw new Error('pack too small');
+    const built = buildSchedule({ rosterIds: ids, plans, prompts: drawn.prompts, rng, newId: sequentialIds() });
+    const round = built.rounds[0]!;
+    expect(round.duelIds).toHaveLength(2);
+    expect(round.sitOutIds).toEqual(plans[0]!.sitOutIds);
+    for (const duelId of round.duelIds) {
+      const duel = built.duels.get(duelId)!;
+      expect(duel.readerIds).toContain(round.sitOutIds[0]);
+      expect(duel.readerIds).toHaveLength(3);
+    }
+    expect(built.assignments.size).toBe(4);
+  });
+});
+

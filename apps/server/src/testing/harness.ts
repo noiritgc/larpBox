@@ -27,6 +27,12 @@ import { createSilentLogger } from '../logger.js';
 
 /** Test-only helpers for driving the engine without any transport. Never imported by src/index. */
 
+/**
+ * Engine tests default to two posts each (the ring schedule) with 90 seconds of writing, the
+ * original rules most tests were written against. One-post tests pass `postsPerPlayer: 1`.
+ */
+export const HARNESS_SETTINGS: RoomSettings = { ...DEFAULT_SETTINGS, postsPerPlayer: 2, secondsPerPost: 45 };
+
 export function sequentialIds(start = 0): () => string {
   let n = start;
   return () => {
@@ -156,7 +162,7 @@ export class EngineHarness {
   }
 
   createRoom(settings: Partial<RoomSettings> = {}): TestRoom {
-    const response = this.engine.createRoom(randomUUID(), { ...DEFAULT_SETTINGS, ...settings });
+    const response = this.engine.createRoom(randomUUID(), { ...HARNESS_SETTINGS, ...settings });
     const entry = this.engine.store.get(response.roomId);
     const hostSession = entry ? [...entry.room.sessions.values()].find((s) => s.role === 'host') : undefined;
     if (!hostSession) throw new Error('host session missing');
@@ -428,6 +434,8 @@ export function playGame(
     switch (entry.room.phase.name) {
       case 'WRITING':
         for (const player of room.players) {
+          // Writing ends early once every assignment is locked, possibly before a sit-out's turn.
+          if (h.phase(room) !== 'WRITING') break;
           const view = h.playerView(room, player);
           if (view.screen.kind !== 'WRITING') throw new Error('expected writing');
           for (const assignment of view.screen.assignments) {
@@ -502,7 +510,16 @@ export function playGame(
           h.expectOk(h.send(room, player, 'duel.lockEndorsement', { duelId: view.screen.duelId, choice }));
           record?.endorsements.set(player.id, choice);
         }
-        if (h.phase(room) === 'DUEL_ENDORSE') h.advanceToNextPhase(room);
+        if (h.phase(room) === 'DUEL_ENDORSE') {
+          // The rule, restated independently: at the deadline a connected reader who never picked
+          // counts as Neither; a disconnected one casts no ballot.
+          for (const readerId of record?.readers ?? []) {
+            if (!record?.endorsements.has(readerId) && entry.room.players.get(readerId)?.connected) {
+              record?.endorsements.set(readerId, 'NEITHER');
+            }
+          }
+          h.advanceToNextPhase(room);
+        }
         break;
       }
       case 'DUEL_RESULT': {

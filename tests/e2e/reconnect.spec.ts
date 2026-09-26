@@ -30,7 +30,7 @@ async function toWriting(options: Parameters<typeof hostRoom>[1], browser: Brows
 }
 
 test('a phone reload while drafting restores the text, and a locked post survives reload', async ({ browser }) => {
-  await toWriting({ quick: true, writingSeconds: 180 }, browser);
+  await toWriting({ quick: true, secondsPerPost: 90 }, browser);
   const writer = players[0]!;
   const page = writer.page;
   const draft = 'Humbled to announce a draft that survives a refresh. #Resilience';
@@ -52,7 +52,7 @@ test('a phone reload while drafting restores the text, and a locked post survive
 });
 
 test('an unlocked valid draft is auto-submitted at the deadline; an empty one forfeits', async ({ browser }) => {
-  await toWriting({ quick: true, writingSeconds: 90 }, browser);
+  await toWriting({ quick: true, secondsPerPost: 45 }, browser);
   const lazy = players[0]!;
   const draft = 'A saved draft that I never locked, submitted on time anyway.';
   await lazy.page.getByTestId('composer').fill(draft);
@@ -84,7 +84,7 @@ test('an unlocked valid draft is auto-submitted at the deadline; an empty one fo
 });
 
 test('a reader who drops and returns before the deadline can still vote; after it they cannot', async ({ browser }) => {
-  await toWriting({ quick: true, writingSeconds: 180, guessSeconds: 30, endorseSeconds: 30 }, browser, ['Alex', 'Sam', 'Jo', 'Dee']);
+  await toWriting({ quick: true, secondsPerPost: 90, guessSeconds: 30, endorseSeconds: 30 }, browser, ['Alex', 'Sam', 'Jo', 'Dee']);
   await writeAll(players);
   await expect(host!.page.getByTestId('host-duel-guess')).toBeVisible({ timeout: 30_000 });
   const reader = await findByRole(players, 'reader', 'guess');
@@ -107,7 +107,7 @@ test('a reader who drops and returns before the deadline can still vote; after i
 });
 
 test('host going offline freezes every timer; it returns paused and Resume continues', async ({ browser }) => {
-  await toWriting({ quick: true, writingSeconds: 90 }, browser);
+  await toWriting({ quick: true, secondsPerPost: 45 }, browser);
   const phone = players[0]!.page;
   await host!.page.close();
   await expect(phone.getByText('The big screen disconnected. Waiting for the host.')).toBeVisible({ timeout: 15_000 });
@@ -128,7 +128,7 @@ test('host going offline freezes every timer; it returns paused and Resume conti
 });
 
 test('opening the same seat in a second tab requires an explicit takeover', async ({ browser }) => {
-  await toWriting({ quick: true, writingSeconds: 180 }, browser);
+  await toWriting({ quick: true, secondsPerPost: 90 }, browser);
   const original = players[0]!;
   const second = await original.context.newPage();
   await second.goto(`/play/${host!.code}`);

@@ -84,7 +84,8 @@ function phaseView(entry: RoomEntry, ctx: ProjectionContext): PhaseView {
 function copySettings(settings: RoomSettings): RoomSettings {
   return {
     roundCount: settings.roundCount,
-    writingSeconds: settings.writingSeconds,
+    postsPerPlayer: settings.postsPerPlayer,
+    secondsPerPost: settings.secondsPerPost,
     guessSeconds: settings.guessSeconds,
     endorseSeconds: settings.endorseSeconds,
     pack: settings.pack,
@@ -222,6 +223,7 @@ function roundIntroScreen(room: Room, game: GameState) {
     roundCount: room.settings.roundCount,
     multiplier: round.multiplier,
     title: ROUND_TITLES[round.index] ?? ROUND_TITLES[1],
+    sitOutIds: [...round.sitOutIds],
   };
 }
 
@@ -265,10 +267,14 @@ function hostScreen(entry: RoomEntry, ctx: ProjectionContext): HostScreen {
       return roundIntroScreen(room, game);
     case 'WRITING': {
       const assignments = roundAssignments(game, game.roundIndex);
-      const progress = game.rosterIds.map((playerId) => ({
-        playerId,
-        locked: assignments.filter((a) => a.playerId === playerId && a.status === 'LOCKED').length,
-      }));
+      const progress = game.rosterIds.map((playerId) => {
+        const own = assignments.filter((a) => a.playerId === playerId);
+        return {
+          playerId,
+          locked: own.filter((a) => a.status === 'LOCKED').length,
+          total: own.length,
+        };
+      });
       return {
         kind: 'WRITING',
         progress,
@@ -395,7 +401,11 @@ function playerScreen(entry: RoomEntry, playerId: string, ctx: ProjectionContext
         options: guessOptions(duel),
         lockedCount: duel.guesses.size,
         eligibleCount: duel.readerIds.length,
-        me: { ...duelSelf(game, duel, playerId), guessOptionId: duel.guesses.get(playerId) ?? null },
+        me: {
+          ...duelSelf(game, duel, playerId),
+          guessOptionId: duel.guesses.get(playerId) ?? null,
+          guessPick: duel.guessPicks.get(playerId) ?? null,
+        },
       };
     }
     case 'DUEL_ENDORSE': {
@@ -418,6 +428,7 @@ function playerScreen(entry: RoomEntry, playerId: string, ctx: ProjectionContext
           guessOptionId: guess,
           guessCorrect: guess === null ? null : guess === duel.correctOptionId,
           endorsement: duel.endorsements.get(playerId) ?? null,
+          endorsementPick: duel.endorsementPicks.get(playerId) ?? null,
         },
       };
     }

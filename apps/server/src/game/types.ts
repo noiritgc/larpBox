@@ -127,6 +127,9 @@ export interface Duel {
   readerIds: string[];
   guesses: Map<string, string>;
   endorsements: Map<string, Endorsement>;
+  /** Unlocked selections, locked automatically when the phase's time runs out. */
+  guessPicks: Map<string, string>;
+  endorsementPicks: Map<string, Endorsement>;
   settled: boolean;
   result: DuelResult | null;
 }
@@ -138,6 +141,8 @@ export interface Round {
   duelIds: string[];
   /** Repeated pairings versus round 1 (0 for round 1). */
   repeatedPairings: number;
+  /** Players who write nothing this round (one post each, odd roster). They judge every post-off. */
+  sitOutIds: string[];
   scoreAtStart: Record<string, number>;
 }
 

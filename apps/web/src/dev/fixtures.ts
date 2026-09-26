@@ -9,6 +9,7 @@ import {
   type PlayerScreen,
   type PlayerView,
   type PublicPlayer,
+  type RoomSettings,
 } from '@larpbox/shared';
 
 /**
@@ -101,6 +102,7 @@ interface Common {
   duels?: number | null;
   hostConnected?: boolean;
   gameId?: string | null;
+  settings?: Partial<RoomSettings>;
 }
 
 function base(kind: PhaseView['name'], common: Common) {
@@ -113,7 +115,7 @@ function base(kind: PhaseView['name'], common: Common) {
     serverNow: Date.now(),
     gameId: common.gameId === undefined ? (kind === 'LOBBY' ? null : id(3)) : common.gameId,
     phase: common.phase ?? phase(kind, kind === 'LOBBY' || kind === 'FINAL' ? { remainingMs: null } : {}),
-    settings: { ...DEFAULT_SETTINGS },
+    settings: { ...DEFAULT_SETTINGS, ...common.settings },
     players: common.players ?? players(5),
     roundNumber: common.round === undefined ? (kind === 'LOBBY' ? null : 1) : common.round,
     duelNumber: common.duel === undefined ? (kind.startsWith('DUEL_') ? 2 : null) : common.duel,

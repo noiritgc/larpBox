@@ -16,7 +16,7 @@ test('changing settings in the lobby clears readiness and tells everyone', async
   players = await joinAll(browser, host.code, ['Alex', 'Sam', 'Jo']);
   await host.page.getByRole('button', { name: 'Settings' }).click();
   const dialog = host.page.getByRole('dialog', { name: 'Room settings' });
-  await dialog.getByRole('radiogroup', { name: 'Writing time per round' }).getByRole('radio', { name: '120s' }).click();
+  await dialog.getByRole('radiogroup', { name: 'Writing time per post' }).getByRole('radio', { name: '90s' }).click();
   await dialog.getByRole('button', { name: 'Save settings' }).click();
   await expect(host.page.getByText('Settings changed. Everyone needs to ready up again.')).toBeVisible();
   await expect(host.page.getByTestId('start-game')).toBeDisabled();
@@ -27,7 +27,7 @@ test('changing settings in the lobby clears readiness and tells everyone', async
 });
 
 test('pause freezes every phone, add 30 seconds works once, and ending the room reaches everyone', async ({ browser }) => {
-  host = await hostRoom(browser, { quick: true, writingSeconds: 180 });
+  host = await hostRoom(browser, { quick: true, secondsPerPost: 90 });
   players = await joinAll(browser, host.code, ['Alex', 'Sam', 'Jo']);
   await startGame(host, 3);
   await expect(host.page.getByTestId('host-writing')).toBeVisible({ timeout: 30_000 });

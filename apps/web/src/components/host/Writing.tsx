@@ -1,5 +1,5 @@
 import type { HostView } from '@larpbox/shared';
-import { CircleDashed, CircleDot, CircleCheck } from 'lucide-react';
+import { CircleCheck, CircleDashed, CircleDot, Gavel } from 'lucide-react';
 import { Avatar } from '../game/Avatar';
 import { ScreenHeading } from '../ui/ScreenHeading';
 import { HostTopBar } from './HostShell';
@@ -39,7 +39,9 @@ export function HostWriting({ view }: { view: HostView }) {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="grid gap-2">
             <ScreenHeading className="host-heading">Building personal brands…</ScreenHeading>
-            <p className="host-subheading">Two posts each. Keep the facts. Inflate everything else.</p>
+            <p className="host-subheading">
+              {view.settings.postsPerPlayer === 1 ? 'One post each.' : 'Two posts each.'} Keep the facts. Inflate everything else.
+            </p>
           </div>
           <p className="font-display text-[clamp(28px,calc(6px+1.6vw),44px)] font-bold" data-testid="locked-total">
             {screen.lockedTotal} of {screen.assignmentTotal} posts locked
@@ -49,15 +51,17 @@ export function HostWriting({ view }: { view: HostView }) {
           {screen.progress.map((entry) => {
             const player = byId.get(entry.playerId);
             if (!player) return null;
-            const Icon = entry.locked === 2 ? CircleCheck : entry.locked === 1 ? CircleDot : CircleDashed;
+            const sittingOut = entry.total === 0;
+            const done = !sittingOut && entry.locked === entry.total;
+            const Icon = sittingOut ? Gavel : done ? CircleCheck : entry.locked > 0 ? CircleDot : CircleDashed;
             return (
               <li key={entry.playerId} className="host-writer-tile" data-testid="writer-tile">
                 <Avatar id={player.avatarId} size={52} decorative />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-[var(--host-name)] font-bold leading-tight">{player.name}</p>
                   <p className="inline-flex items-center gap-2 font-mono text-[clamp(16px,calc(6px+0.8vw),22px)]">
-                    <Icon size={22} aria-hidden="true" className={entry.locked === 2 ? 'text-green' : 'muted'} />
-                    {entry.locked}/2 locked
+                    <Icon size={22} aria-hidden="true" className={done ? 'text-green' : 'muted'} />
+                    {sittingOut ? 'Judging this round' : `${entry.locked}/${entry.total} locked`}
                   </p>
                 </div>
                 {!player.connected ? <span className="status-dot status-dot-off" role="img" title="Offline" aria-label="Offline" /> : null}

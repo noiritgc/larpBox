@@ -36,10 +36,13 @@ describe('HTTP bootstrap API', () => {
 
   it('validates settings strictly', async () => {
     server = await startServer();
-    const bad = await api(server, 'POST', '/api/rooms', { createRequestId: randomUUID(), settings: { ...DEFAULT_SETTINGS, writingSeconds: 45 } });
+    const bad = await api(server, 'POST', '/api/rooms', { createRequestId: randomUUID(), settings: { ...DEFAULT_SETTINGS, secondsPerPost: 30 } });
     expect(bad.status).toBe(400);
     expect(bad.body.error?.code).toBe('BAD_INPUT');
     expect(bad.body.error?.fieldErrors).toBeDefined();
+    // The retired per-round writing setting is an unknown key now, and settings are strict.
+    const stale = await api(server, 'POST', '/api/rooms', { createRequestId: randomUUID(), settings: { ...DEFAULT_SETTINGS, writingSeconds: 90 } });
+    expect(stale.status).toBe(400);
     const extra = await api(server, 'POST', '/api/rooms', { createRequestId: randomUUID(), settings: DEFAULT_SETTINGS, admin: true });
     expect(extra.status).toBe(400);
   });

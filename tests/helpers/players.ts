@@ -26,7 +26,12 @@ export function watchErrors(page: Page, label: string): void {
 export interface HostOptions {
   quick?: boolean;
   pack?: 'Mixed' | 'Everyday' | 'Campus & Work';
-  writingSeconds?: 90 | 120 | 180;
+  /**
+   * Defaults to two posts each at 45 seconds per post (90-second rounds), the rules most browser
+   * tests were written against. Pass 1 to play the product default of one post each.
+   */
+  postsPerPlayer?: 1 | 2;
+  secondsPerPost?: 45 | 60 | 90;
   guessSeconds?: 20 | 30;
   endorseSeconds?: 20 | 30;
   viewport?: { width: number; height: number };
@@ -41,8 +46,11 @@ export async function hostRoom(browser: Browser, options: HostOptions = {}): Pro
   await expect(page).toHaveURL(/\/host\/new$/);
   if (options.quick) await page.getByRole('radio', { name: 'Quick: 1 round' }).click();
   if (options.pack) await page.getByRole('radio', { name: options.pack }).click();
-  if (options.writingSeconds) {
-    await page.getByRole('radiogroup', { name: 'Writing time per round' }).getByRole('radio', { name: `${options.writingSeconds}s` }).click();
+  const postsPerPlayer = options.postsPerPlayer ?? 2;
+  await page.getByRole('radiogroup', { name: 'Posts per player' }).getByRole('radio', { name: postsPerPlayer === 1 ? 'One each' : 'Two each' }).click();
+  const secondsPerPost = options.secondsPerPost ?? (postsPerPlayer === 2 ? 45 : undefined);
+  if (secondsPerPost) {
+    await page.getByRole('radiogroup', { name: 'Writing time per post' }).getByRole('radio', { name: `${secondsPerPost}s` }).click();
   }
   if (options.guessSeconds) {
     await page.getByRole('radiogroup', { name: 'Fact-guess time' }).getByRole('radio', { name: `${options.guessSeconds}s` }).click();
@@ -128,7 +136,9 @@ export async function playerBot(player: PlayerHandle, plan: BotPlan = {}, maxMs 
       if (await composer.isVisible()) {
         const truth = (await page.getByTestId('assignment-truth').textContent()) ?? '';
         const round = Number((await page.locator('.phone-sticky-bar h1').textContent())?.replace(/\D/g, '') || '1');
-        const tab = (await page.getByTestId('post-tab-2').getAttribute('aria-selected')) === 'true' ? 2 : 1;
+        // One post each has no tabs at all.
+        const secondTab = page.getByTestId('post-tab-2');
+        const tab = (await secondTab.count()) > 0 && (await secondTab.getAttribute('aria-selected', { timeout: 1_000 })) === 'true' ? 2 : 1;
         const key = `${round}:${truth}`;
         const text = plan.post ? plan.post(round, tab) : `${player.name} is humbled to announce milestone ${round}.${tab}. Grateful!`;
         if (text === null) {
@@ -197,15 +207,19 @@ export async function findByRole(players: PlayerHandle[], role: 'reader' | 'writ
   throw new Error(`no ${role} found`);
 }
 
-/** Locks both posts on every phone as fast as possible. */
+/** Locks every post (one or two) on every phone as fast as possible; sitting-out phones skip. */
 export async function writeAll(players: PlayerHandle[], text = (player: PlayerHandle, tab: number) => `${player.name} is humbled to announce milestone ${tab}. Grateful!`): Promise<void> {
   await Promise.all(
     players.map(async (player) => {
-      for (let tab = 1; tab <= 2; tab += 1) {
-        await expect(player.page.getByTestId('composer')).toBeVisible();
-        await player.page.getByTestId('composer').fill(text(player, tab));
-        await player.page.getByTestId('lock-post').click();
-        if (tab === 1) await player.page.getByRole('button', { name: 'Write your other post' }).click();
+      const { page } = player;
+      await expect(page.getByTestId('composer').or(page.getByTestId('sitting-out'))).toBeVisible();
+      if (await page.getByTestId('sitting-out').isVisible()) return;
+      const posts = (await page.getByTestId('post-tab-2').count()) > 0 ? 2 : 1;
+      for (let tab = 1; tab <= posts; tab += 1) {
+        await expect(page.getByTestId('composer')).toBeVisible();
+        await page.getByTestId('composer').fill(text(player, tab));
+        await page.getByTestId('lock-post').click();
+        if (tab < posts) await page.getByRole('button', { name: 'Write your other post' }).click();
       }
       // Either this phone waits for the others, or the last lock already ended writing.
       await expect(player.page.getByTestId('composer')).toHaveCount(0);

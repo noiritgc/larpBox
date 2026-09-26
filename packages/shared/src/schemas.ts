@@ -19,7 +19,10 @@ export const AvatarIdSchema = z.enum(AVATAR_IDS);
 
 export const RoomSettingsSchema = z.strictObject({
   roundCount: z.union([z.literal(1), z.literal(2)]),
-  writingSeconds: z.union([z.literal(90), z.literal(120), z.literal(180)]),
+  /** Posts each player writes per round. With one each and an odd roster, one player sits out. */
+  postsPerPlayer: z.union([z.literal(1), z.literal(2)]),
+  /** Writing time per post; the writing phase lasts postsPerPlayer * secondsPerPost. */
+  secondsPerPost: z.union([z.literal(45), z.literal(60), z.literal(90)]),
   guessSeconds: z.union([z.literal(20), z.literal(30)]),
   endorseSeconds: z.union([z.literal(20), z.literal(30)]),
   pack: z.enum(PACKS),
@@ -28,7 +31,8 @@ export type RoomSettings = z.infer<typeof RoomSettingsSchema>;
 
 export const DEFAULT_SETTINGS: RoomSettings = {
   roundCount: 2,
-  writingSeconds: 90,
+  postsPerPlayer: 1,
+  secondsPerPost: 60,
   guessSeconds: 20,
   endorseSeconds: 20,
   pack: 'mixed',
@@ -97,6 +101,9 @@ export const CommandEnvelopeSchema = z.discriminatedUnion('type', [
     'duel.lockEndorsement',
     z.strictObject({ duelId: UuidSchema, choice: z.enum(ENDORSEMENTS) }),
   ),
+  // Unlocked selections. The server locks a pending pick when time runs out.
+  command('duel.pickGuess', z.strictObject({ duelId: UuidSchema, optionId: UuidSchema })),
+  command('duel.pickEndorsement', z.strictObject({ duelId: UuidSchema, choice: z.enum(ENDORSEMENTS) })),
   command('host.pause', EmptyPayload),
   command('host.resume', EmptyPayload),
   command('host.extendWriting', z.strictObject({ seconds: z.literal(30) })),
@@ -127,6 +134,8 @@ export const PLAYER_COMMANDS = [
   'writing.lockPost',
   'duel.lockGuess',
   'duel.lockEndorsement',
+  'duel.pickGuess',
+  'duel.pickEndorsement',
 ] as const satisfies readonly CommandType[];
 
 export const ClockPingSchema = z.strictObject({ clientSentAt: z.number() });
