@@ -8,7 +8,8 @@ import { readItem, writeItem } from './storage';
  */
 export type Cue = 'join' | 'phase' | 'truth' | 'results' | 'final';
 
-const MASTER_GAIN = 0.12;
+// Loud enough to hear over a room through laptop speakers; the cues are short.
+const MASTER_GAIN = 0.4;
 
 interface Note {
   freq: number;
@@ -73,14 +74,32 @@ class HostAudio {
     return this.context !== null && this.context.state === 'running';
   }
 
+  /** Turning sound on (a click) unlocks audio and plays a chime so the host hears it works. */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     writePrefs({ sound: enabled });
-    if (enabled) this.unlock();
+    if (enabled) {
+      this.unlock();
+      this.play('join');
+    }
   }
 
   play(cue: Cue): void {
-    if (!this.enabled || !this.context || this.context.state !== 'running') return;
+    if (!this.enabled || !this.context) return;
+    if (this.context.state === 'suspended') {
+      // The browser paused audio (tab in the background, or no click yet): play once it resumes.
+      void this.context
+        .resume()
+        .then(() => this.schedule(cue))
+        .catch(() => {});
+      return;
+    }
+    if (this.context.state !== 'running') return;
+    this.schedule(cue);
+  }
+
+  private schedule(cue: Cue): void {
+    if (!this.context || this.context.state !== 'running') return;
     try {
       const ctx = this.context;
       const master = ctx.createGain();
