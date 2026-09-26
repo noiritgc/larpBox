@@ -232,19 +232,53 @@ Not verified here, with reasons:
 - **Audio**: cue scheduling is unit-tested with a fake AudioContext; the sounds themselves were
   not listened to in this environment.
 
+## Playtest changes (2026-09-26, after the first Render deploy)
+
+Requested by the team after playing the deployed build:
+
+- **One post each by default.** New setting *Posts per player* (One each / Two each, default one).
+  With one each, players pair up (floor(N/2) post-offs per round). With an odd roster, one player
+  sits out, writes nothing, and reads (guesses and endorses) every post-off. In a two-round game a
+  different player sits out in round 2. Two each keeps the spec's ring (N post-offs, degree two).
+- **Time per post.** *Writing time per round* (90/120/180) became *Writing time per post*
+  (45/60/90 seconds, default 60). Writing lasts posts per player x seconds per post: 60 seconds by
+  default, 120 with two posts at 60.
+- **Picks count when time runs out.** Phones send unlocked picks to the server
+  (`duel.pickGuess`, `duel.pickEndorsement`; visible only in the picker's own view). At the GUESS
+  deadline an unlocked pick becomes the guess. At the ENDORSE deadline an unlocked pick becomes the
+  endorsement, and a reader who is still connected but picked nothing counts as **Neither** (which
+  lowers the writers' share, as any Neither ballot does). Disconnected readers cast no ballot, so a
+  dead phone doesn't dilute everyone's points.
+- **Louder timers.** Under 10 seconds (15 while writing) the timer turns red. On a phone whose
+  player still has to act, it also pulses, the screen gets a red edge, and the phone vibrates at
+  the start of the window, at 5 seconds, and at 3, 2 and 1 (Vibration API; iOS Safari has none).
+  Reduced motion removes the pulse and flashing.
+- **Front page.** Below the spec's hero: how a round works, an example post-off with the guess
+  options, what you need, an FAQ and a closing call to action.
+- **Logo.** The team's `LARPbox TV` artwork replaces the text wordmark everywhere (cut out of its
+  white background, WebP at 480 and 1040 px; source kept in `apps/web/brand/`). Favicons and the
+  home-screen icon use its TV box. `scripts/brand-logo.py` and `scripts/brand-favicon.py`
+  regenerate them (Python with Pillow and NumPy).
+- **Fewer em dashes.** None remain in UI copy.
+- **More profiles.** 16 avatars (eight new: rocket, megaphone, laptop, light bulb, bar chart,
+  sunglasses, crown, name badge) and 32 fictional headlines, drawn at random per player (no two
+  alike in a room) and drawn again when the host starts a new game.
+- **Later, not during the hackathon:** an iMessage or Discord version of the game.
+
 ## Final verification (2026-09-26, Node 24.21.0)
 
 | Command | Result |
 | --- | --- |
-| `npm run typecheck` | exit 0 (shared, server, web, web config, tests); rerun after the Render changes |
-| `npm run lint` | exit 0; rerun after the Render changes |
-| `npx vitest run` | 16 files, 197 tests passed (after the Render changes; 192 before) |
-| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 22 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.1 min; rerun after the Render changes |
-| `npx tsx tests/load/loadTest.ts` | passed: 10 × 8-player Standard games, ack p95 37.6ms, 0 leaks, 0 timers left |
-| `node scripts/capture-gallery.mjs` | 36 scenarios × 2 sizes each, no overflow, TV post text ≥ 24px |
+| `npm run typecheck` | exit 0 (shared, server, web, web config, tests) after the playtest changes, and at each of the seven playtest commits on its own |
+| `npm run lint` | exit 0, likewise at each playtest commit |
+| `npx vitest run` | 17 files, 243 tests passed (192 at milestone 6, 197 after the Render changes); every playtest commit passes on its own |
+| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 23 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.4 min, after the playtest changes |
+| `npx tsx tests/load/loadTest.ts` | passed after the playtest changes: 10 × 8-player Standard games with one post each (4 post-offs per round) in 63.9 s, ack p50 3.5 ms, p95 20.4 ms, max 42.4 ms, 0 failures, 0 rooms or timers left (milestone 6, two posts each: p95 37.6 ms) |
+| `node scripts/capture-gallery.mjs` | 43 scenarios × 2 sizes each (7 new: sit-out intros, one-post writing, judging, urgent guess and endorse), no page errors, no overflow, TV post text ≥ 24px |
+| Public pages (landing, host setup, join, help) at 1440×900 and 390×844 | no horizontal overflow; screenshots reviewed |
 | Production runtime smoke + SIGTERM | passed (see Milestone 6) |
-| Render rehearsal (clean copy, Render's build and start commands) | 12/12 checks passed (see Milestone 6) |
-| Static-only host check (Chromium) | 7/7 checks passed (see Milestone 6) |
+| Render rehearsal (clean copy, Render's build and start commands) | 12/12 checks passed before the playtest changes (see Milestone 6) |
+| Static-only host check (Chromium) | 7/7 checks passed before the playtest changes (see Milestone 6) |
 
 ## Definition of done (spec section 19)
 
@@ -302,6 +336,19 @@ Not verified here, with reasons:
   sizes.
 - On very short or narrow layouts, decorative elements are removed first: post card footers and
   lobby headlines on 720p TVs, and small avatars on phones below 300 CSS px.
+- Settings (spec 1.7): *Writing time per round* is replaced by *Posts per player* (1 or 2, default
+  1) and *Writing time per post* (45/60/90, default 60). With one post each the schedule is a
+  pairing with a rotating sit-out instead of the degree-two ring; the ring remains for two each.
+  Round intro and writing copy follow the setting ("One post. One timer.", "x/1 locked", "Judging
+  this round") instead of the spec's fixed two-post wording.
+- Unlocked guess and endorsement selections are sent to the server as picks and locked at the
+  deadline; a connected reader with no endorsement pick counts as Neither. The spec keeps
+  selected-but-unlocked choices in component state only and counts no ballot for them.
+- The timer's urgent state is red (with a pulse, a red screen edge and vibration on phones that
+  still need to act) instead of yellow.
+- The landing page adds sections below the spec's hero, and the wordmark is the team's logo image.
+- 16 avatars (4 x 4 grid) instead of eight, and headlines are drawn at random from 32 per player
+  instead of being fixed by seat.
 
 ## Known limitations
 

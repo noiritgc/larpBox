@@ -239,7 +239,8 @@ production builds.
 
 1. Put the host lobby on the projector; three or more people scan the QR code.
 2. Use Quick mode (one round) for a short pitch.
-3. Everyone writes two posts on their phone while the big screen shows who has locked in.
+3. Everyone writes a post on their phone (two if you chose two posts each) while the big screen shows
+   who has locked in. With one post each and an odd number of players, one person judges instead.
 4. Present a post-off: read, guess the real event, see the truth, endorse, reveal the authors.
 5. The remaining post-offs run on their own; the host can pause from **Host controls**.
 
