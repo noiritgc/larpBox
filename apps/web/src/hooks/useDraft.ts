@@ -118,7 +118,6 @@ export function useDraft(params: {
           if (textRef.current === sent) {
             dirtyRef.current = false;
             setSaveStatus('saved');
-            setRestored(false);
           }
           persistLocal({ lastAckRevision: revisionRef.current, unsent: dirtyRef.current });
           return;
@@ -166,6 +165,8 @@ export function useDraft(params: {
       dirtyRef.current = true;
       setTextState(value);
       setMessage(null);
+      // The restored-draft notice stays until the writer edits again.
+      setRestored(false);
       persistLocal({ unsent: true });
       clearTimer();
       timerRef.current = window.setTimeout(() => void save(), SAVE_DEBOUNCE_MS);
