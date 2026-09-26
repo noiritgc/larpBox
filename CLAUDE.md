@@ -51,6 +51,15 @@ The load test is `npx tsx tests/load/loadTest.ts`. The design gallery runs with
 - `render.yaml`: Render Blueprint (one native Node service, one instance). The game can't run on a
   static host; production needs `PUBLIC_ORIGIN` or Render's `RENDER_EXTERNAL_URL`.
 
+## Visual system
+
+The team's sketchbook redesign (see IMPLEMENTATION_STATUS "Frontend redesign") overrides the
+spec's section 3 look. Tokens live in `apps/web/src/styles/tokens.css`; never hard-code hex.
+Headlines use `.display` (Lilita One, uppercase) with the blue half in `.accent`; Kalam (`.hand`,
+`.tagline`) is for short asides only; post text is `.post-body` (Space Grotesk Regular). Yellow is
+only for `<Sticker>`. The logo is `<BrandLogo>` (the supplied PNG, unchanged, one per page). Big
+screen phases render inside `.host-stage` (the page frame); marketing pages use `.page-frame`.
+
 ## Invariants
 
 - The server owns state, deadlines, assignments, eligibility, secrets, and scoring. Clients never

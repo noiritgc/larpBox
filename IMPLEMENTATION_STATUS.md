@@ -255,15 +255,62 @@ Requested by the team after playing the deployed build:
   Reduced motion removes the pulse and flashing.
 - **Front page.** Below the spec's hero: how a round works, an example post-off with the guess
   options, what you need, an FAQ and a closing call to action.
-- **Logo.** The team's `LARPbox TV` artwork replaces the text wordmark everywhere (cut out of its
-  white background, WebP at 480 and 1040 px; source kept in `apps/web/brand/`). Favicons and the
-  home-screen icon use its TV box. `scripts/brand-logo.py` and `scripts/brand-favicon.py`
-  regenerate them (Python with Pillow and NumPy).
+- **Logo.** The team's `LARPbox TV` artwork replaces the text wordmark everywhere. (The redesign
+  below now shows the original PNG unchanged; the favicons and home-screen icon use its TV box, and
+  `scripts/brand-logo.py` and `scripts/brand-favicon.py` regenerate them with Pillow and NumPy.)
 - **Fewer em dashes.** None remain in UI copy.
 - **More profiles.** 16 avatars (eight new: rocket, megaphone, laptop, light bulb, bar chart,
   sunglasses, crown, name badge) and 32 fictional headlines, drawn at random per player (no two
   alike in a room) and drawn again when the host starts a new game.
 - **Later, not during the hackathon:** an iMessage or Discord version of the game.
+
+## Frontend redesign: the LARPbox TV sketchbook theme (2026-09-26)
+
+Applied from the team's `Larpbox-Frontend-Redesign.zip` (brief `CLAUDE_FRONTEND_REDESIGN.md`,
+reference `theme.css`, HTML previews and screenshots). A presentation change only: routes, API
+and socket contracts, rules, timers, scoring, drafts, reconnects, secrecy and test IDs are
+unchanged.
+
+- **Tokens.** White paper (no cream), ink `#242424`, one electric blue `#2351FF` with soft blue
+  `#EDF1FF` for selections, muted `#5B5B64`, divider `#B8BFD2`, disabled surface and text; the
+  `#E9FF70` yellow is reserved for emphasis stickers.
+- **Type.** Lilita One for uppercase headlines and phase titles (two-tone, the second phrase
+  blue, some with a drawn blue underline), Kalam for short handwritten asides only, Space Grotesk
+  Regular for displayed post text, Inter for everything functional. IBM Plex Mono and the unused
+  Space Grotesk weights are gone.
+- **Logo.** One `BrandLogo` component shows the supplied PNG unchanged (its white background sits on
+  the white pages): 166 px wide in headers, 116 px on phones. It is the only logo on any page.
+- **Surfaces.** A double-outlined page frame on marketing pages and around every big-screen phase
+  (`.host-stage`); none on in-game phones. Cards 16 px (hero sample 18 px), buttons 11 px, fields
+  12 px, one clean ink outline with a hard shadow; blue striped tape on feature cards and
+  big-screen posts; the sample post card tilts 1.2 degrees.
+- **Emphasis stickers.** A `Sticker` component (yellow, bold uppercase Space Grotesk, 6 px corners,
+  tilted) for revealed truths, punchlines, Double Clout, awards and result captions. They hang past
+  their card's left edge (hero 54 px, cards 42 px, reveal lines 20 px; less on phones) and lose
+  their tilt with reduced motion.
+- **Controls.** Selected options: blue outline, soft blue fill, blue label and a check. Disabled:
+  grey surface and text. Timers: a blue outlined oval with tabular digits (red when time runs
+  out, as before). Room codes in blue Lilita. Avatars are outline icons with no per-player colors.
+  Rosters and scoreboards are ruled lists with the leader (big screen) or you (phone) in soft blue.
+- **Screens.** New titles from the previews: "Host a networking event.", "Join your network.",
+  "How to LARP.", "The networking event starts here.", "Make it sound insane.", "Guess the
+  LARP.", "Who LARPed harder?", plus an "Endorse on your phone." strip on the big screen.
+
+Departures from the redesign brief, and why:
+
+- Fonts come from `@fontsource` Latin WOFF2 subsets (the app's existing pipeline) instead of the
+  bundled TTFs: the same families at about 50 KB instead of about 590 KB. The OFL texts from the
+  zip are kept in `apps/web/brand/font-licenses/`.
+- The brief audited the site before one post each, time per post, the louder timer, 16 avatars
+  and the longer front page. Those stay, restyled: the setup form keeps its current options, the
+  front page keeps its extra sections below the brief's hero and three steps, and the urgent timer
+  stays red.
+- The game keeps its "Lock" wording (the preview's phone mock says "Submit post").
+- In-game phone posts use 20 px Space Grotesk (the brief's 25 px applies to the home page sample,
+  which uses it) so a full 280-character post and the guess options fit on a phone.
+- Big-screen post cards keep the spec's anonymous profile row, with the A/B identifier as a blue
+  corner tab instead of the preview's "POST A" label.
+- Short big screens (820 px tall or less) hide the lobby's handwritten asides first.
 
 ## Final verification (2026-09-26, Node 24.21.0)
 
@@ -277,6 +324,7 @@ Requested by the team after playing the deployed build:
 | `node scripts/capture-gallery.mjs` | 43 scenarios × 2 sizes each (7 new: sit-out intros, one-post writing, judging, urgent guess and endorse), no page errors, no overflow, TV post text ≥ 24px |
 | Public pages (landing, host setup, join, help) at 1440×900 and 390×844 | no horizontal overflow; screenshots reviewed |
 | Production runtime smoke + SIGTERM | passed (see Milestone 6) |
+| After the sketchbook redesign | typecheck and lint exit 0; `npx vitest run` 243 passed; `npm run test:e2e` 23 passed, 1 skipped, 5.6 min (fresh build); gallery 43 scenarios × 2 sizes with no page errors, no overflow, TV post text ≥ 24px; landing, setup, join and help at 1440×1000, 390×844 and 320×568 with no horizontal overflow; axe scans in the e2e suite clean |
 | Render rehearsal (clean copy, Render's build and start commands) | 12/12 checks passed before the playtest changes (see Milestone 6) |
 | Static-only host check (Chromium) | 7/7 checks passed before the playtest changes (see Milestone 6) |
 
@@ -347,8 +395,11 @@ Requested by the team after playing the deployed build:
 - The timer's urgent state is red (with a pulse, a red screen edge and vibration on phones that
   still need to act) instead of yellow.
 - The landing page adds sections below the spec's hero, and the wordmark is the team's logo image.
-- 16 avatars (4 x 4 grid) instead of eight, and headlines are drawn at random from 32 per player
-  instead of being fixed by seat.
+- The whole visual system follows the team's sketchbook redesign (white paper, `#2351FF` blue,
+  Lilita One, Kalam and Space Grotesk, stickers and tape) instead of the spec's section 3 tokens
+  and type; see "Frontend redesign" above.
+- 16 avatars (4 x 4 grid) instead of eight, drawn as outline icons without per-player colors, and
+  headlines are drawn at random from 32 per player instead of being fixed by seat.
 - `PROTOCOL_VERSION` is 2 (the spec shows 1): settings, views and commands changed shape with the
   playtest changes, so a page loaded before a deploy is told "This page is out of date. Reload to
   continue." instead of failing to read the new snapshots.
