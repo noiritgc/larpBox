@@ -106,24 +106,19 @@
   .wordmark {
     display: inline-flex;
     align-items: center;
-    gap: 0.28em;
-    font-family: var(--font-display);
-    font-weight: 700;
+    flex: none;
     font-size: 24px;
     line-height: 1;
-    letter-spacing: -0.03em;
     color: var(--ink);
     text-decoration: none;
   }
-  .wordmark-tv {
-    display: inline-block;
-    font-size: 0.46em;
-    letter-spacing: 0.06em;
-    line-height: 1;
-    padding: 0.22em 0.36em 0.18em;
-    border: 2px solid currentColor;
-    border-radius: 0.3em;
-    transform: translateY(-0.18em);
+  /* The logo is about 2.3:1 with the lounging figure on top, so it needs about twice the old text height. */
+  .wordmark img {
+    display: block;
+    height: 2.1em;
+    width: auto;
+    max-width: none;
+    user-select: none;
   }
 
   /* ---------- Buttons ---------- */
