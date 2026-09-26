@@ -490,7 +490,7 @@ export class GameEngine {
         generation: session.connectionGeneration,
         takeover: replacedSocketId !== null && !replacedSameInstance,
       },
-      'session.connected',
+      session.connectionGeneration > 1 ? 'session.reconnected' : 'session.connected',
     );
     this.publisher.publish(entry, ALL);
     return { generation: session.connectionGeneration, replacedSocketId, replacedSameInstance };
