@@ -30,6 +30,7 @@ async function main(): Promise<void> {
       publicOrigin: config.publicOrigin,
       nodeEnv: config.nodeEnv,
       prompts: promptPack.prompts.length,
+      timeScale: config.gameTimeScale,
       version: config.version,
     },
     'server.listening',
@@ -39,7 +40,9 @@ async function main(): Promise<void> {
   const shutdown = (signal: string) => {
     if (shuttingDown) return;
     shuttingDown = true;
-    logger.info({ signal }, 'server.shutdown');
+    logger.info({ signal, rooms: service.engine.store.size }, 'server.shutdown');
+    const force = setTimeout(() => process.exit(0), 5_000);
+    force.unref();
     service
       .close()
       .catch((error: unknown) => logger.error({ err: error }, 'server.shutdown_failed'))

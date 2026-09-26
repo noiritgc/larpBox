@@ -393,6 +393,14 @@ export class GameEngine {
   // -------------------------------------------------------------------------------------------
   // Socket sessions
 
+  /** The live session behind a socket, or null once the room ended or the session was revoked. */
+  sessionFor(roomId: string, sessionId: string): { entry: RoomEntry; session: SessionRecord } | null {
+    const entry = this.store.get(roomId);
+    const session = entry?.room.sessions.get(sessionId);
+    if (!entry || !session || session.revoked) return null;
+    return { entry, session };
+  }
+
   authenticate(auth: SocketAuth): { entry: RoomEntry; session: SessionRecord } {
     if (auth.protocolVersion !== PROTOCOL_VERSION) {
       throw new GameError('PROTOCOL_MISMATCH', 'This page is out of date. Reload to continue.');
