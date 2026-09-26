@@ -28,7 +28,8 @@ export function CountUp({ value, prefix = '', suffix = '' }: { value: number; pr
     return () => cancelAnimationFrame(frame.current);
   }, [value]);
   return (
-    <span aria-label={`${prefix}${formatClout(value)}${suffix}`}>
+    <span>
+      <span className="sr-only">{`${prefix}${formatClout(value)}${suffix}`}</span>
       <span aria-hidden="true">
         {prefix}
         {formatClout(shown)}

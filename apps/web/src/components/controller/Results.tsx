@@ -37,7 +37,7 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
         <Timer phase={view.phase} variant="phone" />
       </div>
       <ScreenHeading className="phone-heading">{verdictHeading(result.stamp)}</ScreenHeading>
-      <div className="breakdown" aria-label="Your Clout this round">
+      <div className="breakdown" role="group" aria-label="Your Clout this round">
         {me.writingPoints !== null ? (
           <div className="breakdown-row">
             <span>Writing</span>

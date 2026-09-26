@@ -60,7 +60,7 @@ export function HostWriting({ view }: { view: HostView }) {
                     {entry.locked}/2 locked
                   </p>
                 </div>
-                {!player.connected ? <span className="status-dot status-dot-off" title="Offline" aria-label="Offline" /> : null}
+                {!player.connected ? <span className="status-dot status-dot-off" role="img" title="Offline" aria-label="Offline" /> : null}
               </li>
             );
           })}

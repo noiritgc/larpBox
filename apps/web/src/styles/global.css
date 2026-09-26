@@ -382,6 +382,15 @@
     margin-left: auto;
     flex: none;
   }
+  .choice-selected {
+    margin-left: auto;
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 
   .segmented {
     display: grid;

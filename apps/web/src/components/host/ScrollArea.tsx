@@ -29,7 +29,12 @@ export function ScrollArea({ children, className = '' }: { children: ReactNode; 
   }, []);
 
   return (
-    <div ref={ref} className={`host-scroll flex-1 ${className}`} tabIndex={overflowing ? 0 : -1} aria-label={overflowing ? 'Scrollable content' : undefined}>
+    <div
+      ref={ref}
+      className={`host-scroll flex-1 ${className}`}
+      tabIndex={overflowing ? 0 : -1}
+      {...(overflowing ? { role: 'region', 'aria-label': 'Scrollable content' } : {})}
+    >
       {children}
       {overflowing && !atEnd ? (
         <div className="host-scroll-cue" aria-hidden="true">

@@ -66,8 +66,10 @@ export function Scoreboard({
             style={{ fontSize: host ? 'var(--host-name)' : '17px' }}
             data-testid="score-row"
           >
-            <span className="score-rank" aria-label={`Rank ${row.rank}`}>
-              #{row.rank}
+            <span className="score-rank">
+              <span className="sr-only">Rank </span>
+              <span aria-hidden="true">#</span>
+              {row.rank}
             </span>
             <Avatar id={player.avatarId} size={host ? 52 : 36} decorative />
             <span className="min-w-0">

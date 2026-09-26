@@ -11,9 +11,6 @@
     padding: 0 16px calc(24px + env(safe-area-inset-bottom));
   }
   .phone-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -66,9 +63,10 @@
   .phone-timer-urgent {
     background: var(--yellow);
   }
+  /* The one sticky row on the phone (round and timer), pinned to the top while writing. */
   .phone-sticky-bar {
     position: sticky;
-    top: calc(58px + env(safe-area-inset-top));
+    top: env(safe-area-inset-top);
     z-index: 15;
     display: flex;
     align-items: center;

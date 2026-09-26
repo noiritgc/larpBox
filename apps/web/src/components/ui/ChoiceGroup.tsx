@@ -81,8 +81,13 @@ export function ChoiceGroup<V extends string | number>({
               <span className="block">{choice.label}</span>
               {choice.description ? <span className="block text-[14px] font-medium muted">{choice.description}</span> : null}
             </span>
-            {checked ? <Check className="choice-check" size={22} strokeWidth={3} aria-hidden="true" /> : null}
-            {checked && layout === 'stack' ? <span className="sr-only">Selected</span> : null}
+            {checked && layout === 'stack' ? (
+              // Visible label for sighted users; aria-checked already announces the state.
+              <span className="choice-selected" aria-hidden="true">
+                Selected
+              </span>
+            ) : null}
+            {checked ? <Check className={layout === 'stack' ? 'flex-none' : 'choice-check'} size={22} strokeWidth={3} aria-hidden="true" /> : null}
           </button>
         );
       })}

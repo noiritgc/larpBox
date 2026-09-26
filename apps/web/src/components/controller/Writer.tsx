@@ -118,7 +118,7 @@ function Composer({
         <p className="eyebrow mb-2" id={`${baseId}-truth-label`}>
           What actually happened
         </p>
-        <p className="truth-box" aria-labelledby={`${baseId}-truth-label`} data-testid="assignment-truth">
+        <p className="truth-box" data-testid="assignment-truth">
           {assignment.truth}
         </p>
       </div>

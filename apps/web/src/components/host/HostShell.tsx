@@ -305,8 +305,11 @@ export function DuelContext({ view }: { view: HostView }) {
       <span>
         Round <strong>{view.roundNumber}</strong> · Post-off <strong>{view.duelNumber}</strong> of {view.duelsInRound}
       </span>
-      <span aria-label={`Room code ${view.roomCode.split('').join(' ')}`}>
-        Room <strong>{view.roomCode}</strong>
+      <span>
+        <span className="sr-only">Room code {view.roomCode.split('').join(' ')}</span>
+        <span aria-hidden="true">
+          Room <strong>{view.roomCode}</strong>
+        </span>
       </span>
     </>
   );
