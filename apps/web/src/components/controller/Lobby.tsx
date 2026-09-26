@@ -64,7 +64,7 @@ export function ControllerLobby({ view, onLeft }: { view: PlayerView; onLeft: ()
         data-testid="ready-button"
         icon={me.ready ? <Check size={20} aria-hidden="true" /> : undefined}
       >
-        {me.ready ? 'Ready — tap to undo' : "I'm ready"}
+        {me.ready ? 'Ready: tap to undo' : "I'm ready"}
       </Button>
       {error ? (
         <p className="field-error" role="alert">

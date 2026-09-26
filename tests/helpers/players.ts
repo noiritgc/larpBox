@@ -75,7 +75,7 @@ export async function readyUp(player: PlayerHandle): Promise<void> {
   const button = player.page.getByTestId('ready-button');
   await expect(button).toHaveText("I'm ready");
   await button.click();
-  await expect(button).toHaveText('Ready — tap to undo');
+  await expect(button).toHaveText('Ready: tap to undo');
 }
 
 export async function joinAll(browser: Browser, code: string, names: string[]): Promise<PlayerHandle[]> {

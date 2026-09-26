@@ -244,7 +244,7 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
         <p className="font-semibold muted">You didn't lock a guess for this one.</p>
       )}
       <Posts posts={screen.posts} mySide={null} />
-      <p className="text-[19px] font-bold leading-snug">Which post made this sound most impressive—and stayed technically true?</p>
+      <p className="text-[19px] font-bold leading-snug">Which post made this sound most impressive while technically staying true?</p>
       <p className="phone-support">If a post invented facts, don't endorse it. Neither is a valid choice.</p>
       {me.endorsement ? (
         <StatusBanner tone="green" icon="none">

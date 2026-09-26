@@ -8,7 +8,7 @@ export function ControllerRoundIntro({ view }: { view: PlayerView }) {
     <div className="grid place-items-center gap-4 py-10 text-center enter">
       <p className="eyebrow">Round {screen.roundNumber} of {screen.roundCount}</p>
       <ScreenHeading className="font-display text-[44px] leading-[1.02]">
-        Round {screen.roundNumber} — {screen.title}.
+        Round {screen.roundNumber}: {screen.title}.
       </ScreenHeading>
       {screen.multiplier === 2 ? <span className="pill-yellow text-[18px]">DOUBLE CLOUT</span> : null}
       <p className="text-[20px] font-semibold">Two posts. One timer.</p>
