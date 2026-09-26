@@ -11,6 +11,14 @@ const PALETTE: Record<AvatarId | 'anonymous', { bg: string; fg: string }> = {
   spreadsheet: { bg: '#EAF0FF', fg: '#1747E7' },
   plant: { bg: '#C9F2D4', fg: '#166534' },
   stamp: { bg: '#171717', fg: '#E9FF70' },
+  rocket: { bg: '#FFB547', fg: '#171717' },
+  megaphone: { bg: '#7C3AED', fg: '#FFFFFF' },
+  laptop: { bg: '#D9D4C7', fg: '#171717' },
+  lightbulb: { bg: '#1E3A8A', fg: '#FFD84D' },
+  chart: { bg: '#0F766E', fg: '#FFFFFF' },
+  sunglasses: { bg: '#FF8FB1', fg: '#171717' },
+  crown: { bg: '#FFD84D', fg: '#171717' },
+  badge: { bg: '#FDE2E4', fg: '#B42318' },
   anonymous: { bg: '#E4E1D8', fg: '#595B62' },
 };
 
@@ -91,6 +99,76 @@ function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
           <path d="M10.3 7.6h3.4l.9 5h-5.2Z" />
           <rect x="4.8" y="12.5" width="14.4" height="4.2" rx="1.2" />
           <rect x="4" y="18.3" width="16" height="2.2" rx="1.1" />
+        </>
+      );
+    case 'rocket':
+      return (
+        <>
+          <path d="M12 2.5c3 2 4.5 5.3 4.5 9.2V16h-9v-4.3c0-3.9 1.5-7.2 4.5-9.2Z" />
+          <circle cx="12" cy="9.4" r="1.8" fill={bg} />
+          <path d="M7.5 11.8 4.4 15.3v3.2l3.1-1.7Z" />
+          <path d="M16.5 11.8l3.1 3.5v3.2l-3.1-1.7Z" />
+          <path d="M10 17h4l-.9 3.2L12 21.8l-1.1-1.6Z" />
+        </>
+      );
+    case 'megaphone':
+      return (
+        <>
+          <path d="M3.5 9.8h3.2l8.8-4.8v14l-8.8-4.8H3.5Z" />
+          <path d="M6.9 14.6h2.5l1.1 4.9H8.1Z" />
+          <rect x="17.8" y="11.2" width="3.4" height="1.6" rx=".8" />
+          <path d="M17.6 7.6l2.7-1.6.8 1.4-2.7 1.6Z" />
+          <path d="M17.6 16.4l2.7 1.6.8-1.4-2.7-1.6Z" />
+        </>
+      );
+    case 'laptop':
+      return (
+        <>
+          <rect x="5" y="4.5" width="14" height="10.5" rx="1.2" />
+          <rect x="6.6" y="6.1" width="10.8" height="7.3" rx=".4" fill={bg} />
+          <path d="M2.5 16.4h19l-1.2 2.4a1.4 1.4 0 0 1-1.2.7H4.9a1.4 1.4 0 0 1-1.2-.7Z" />
+        </>
+      );
+    case 'lightbulb':
+      return (
+        <>
+          <path d="M12 2.6a6.2 6.2 0 0 1 3.7 11.2c-.6.5-.9 1.1-.9 1.8v.9H9.2v-.9c0-.7-.3-1.3-.9-1.8A6.2 6.2 0 0 1 12 2.6Z" />
+          <rect x="9.2" y="17.5" width="5.6" height="1.6" rx=".5" />
+          <rect x="9.8" y="19.7" width="4.4" height="1.7" rx=".85" />
+        </>
+      );
+    case 'chart':
+      return (
+        <>
+          <rect x="3.8" y="13.6" width="3.6" height="6.9" rx=".6" />
+          <rect x="10.2" y="9.4" width="3.6" height="11.1" rx=".6" />
+          <rect x="16.6" y="4.4" width="3.6" height="16.1" rx=".6" />
+          <rect x="2.5" y="20.5" width="19" height="1.4" rx=".7" />
+        </>
+      );
+    case 'sunglasses':
+      return (
+        <>
+          <rect x="2" y="8" width="20" height="1.8" rx=".9" />
+          <path d="M2.6 9h8v2.8a3.4 3.4 0 0 1-3.4 3.4H6a3.4 3.4 0 0 1-3.4-3.4Z" />
+          <path d="M13.4 9h8v2.8a3.4 3.4 0 0 1-3.4 3.4h-1.2a3.4 3.4 0 0 1-3.4-3.4Z" />
+          <rect x="10.2" y="9.6" width="3.6" height="1.5" />
+        </>
+      );
+    case 'crown':
+      return (
+        <>
+          <path d="M3.4 7.6l4.4 3.7L12 4.6l4.2 6.7 4.4-3.7-1.7 10H5.1Z" />
+          <rect x="5" y="18.8" width="14" height="2.2" rx=".7" />
+        </>
+      );
+    case 'badge':
+      return (
+        <>
+          <path d="M7.6 2.5h2.2l2.2 5 2.2-5h2.2l-3.3 7.1h-2.2Z" />
+          <rect x="5.2" y="9" width="13.6" height="12.5" rx="1.6" />
+          <circle cx="12" cy="13.4" r="2.1" fill={bg} />
+          <rect x="8.4" y="17.2" width="7.2" height="1.4" rx=".7" fill={bg} />
         </>
       );
     case 'anonymous':

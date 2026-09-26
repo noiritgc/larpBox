@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { DEFAULT_SETTINGS, type Phase } from '@larpbox/shared';
 import { describe, expect, it } from 'vitest';
+import { HEADLINES } from '../content/headlines.js';
 import { loadPromptPack } from '../content/loadPrompts.js';
 import {
   DEFAULT_STRATEGY,
@@ -101,7 +102,9 @@ describe('lobby', () => {
     h.expectOk(h.send(room, 'host', 'host.removePlayer', { playerId: b!.id }));
     const d = h.join(room, 'Dev');
     expect(players().get(d.id)?.seat).toBe(1);
-    expect(players().get(d.id)?.headline).toBe('Founder · Details Coming Soon');
+    const headlines = [...players().values()].map((player) => player.headline);
+    for (const headline of headlines) expect(HEADLINES).toContain(headline);
+    expect(new Set(headlines).size).toBe(headlines.length);
     expect(h.publisher.revoked.at(-1)?.payload.reason).toBe('REMOVED');
   });
 

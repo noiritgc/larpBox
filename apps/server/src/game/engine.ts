@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import {
   HOST_COMMANDS,
   MAX_PLAYERS,
@@ -28,7 +28,7 @@ import {
   type RoomSettings,
   type SocketAuth,
 } from '@larpbox/shared';
-import { headlineForSeat } from '../content/headlines.js';
+import { pickHeadline } from '../content/headlines.js';
 import { promptsForPack, type PromptPack } from '../content/loadPrompts.js';
 import type { Logger } from '../logger.js';
 import { canonicalHash, generateToken, hashToken, tokenHashesEqual } from '../security/tokens.js';
@@ -135,6 +135,8 @@ export interface EngineOptions {
   newSeed?: () => string;
   newToken?: () => string;
   randomCode?: () => string;
+  /** Uniform integer in [0, maxExclusive), for non-game choices such as profile headlines. */
+  randomInt?: (maxExclusive: number) => number;
 }
 
 export interface CommandOutcome {
@@ -181,6 +183,7 @@ export class GameEngine {
   private readonly newId: () => string;
   private readonly newSeed: () => string;
   private readonly newToken: () => string;
+  private readonly randomInt: (maxExclusive: number) => number;
   private readonly clock: Clock;
   private readonly scheduler: Scheduler;
   private readonly logger: Logger;
@@ -197,6 +200,7 @@ export class GameEngine {
     this.newId = options.newId ?? randomUUID;
     this.newSeed = options.newSeed ?? createSeed;
     this.newToken = options.newToken ?? generateToken;
+    this.randomInt = options.randomInt ?? ((maxExclusive) => randomInt(maxExclusive));
     this.store = new RoomStore(options.clock, options.randomCode ?? randomRoomCode);
   }
 
@@ -341,7 +345,7 @@ export class GameEngine {
       normalizedName: name.key,
       avatarId: input.avatarId,
       seat,
-      headline: headlineForSeat(seat),
+      headline: pickHeadline(new Set([...room.players.values()].map((other) => other.headline)), this.randomInt),
       ready: false,
       connected: false,
       everConnected: false,
@@ -918,6 +922,12 @@ export class GameEngine {
         player.score = 0;
         player.ready = false;
       }
+    }
+    // A new game, a new professional identity.
+    const taken = new Set<string>();
+    for (const player of playersBySeat(room)) {
+      player.headline = pickHeadline(taken, this.randomInt);
+      taken.add(player.headline);
     }
     room.game = null;
     room.settingsChanged = false;

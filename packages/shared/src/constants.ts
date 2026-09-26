@@ -74,6 +74,14 @@ export const AVATAR_IDS = [
   'spreadsheet',
   'plant',
   'stamp',
+  'rocket',
+  'megaphone',
+  'laptop',
+  'lightbulb',
+  'chart',
+  'sunglasses',
+  'crown',
+  'badge',
 ] as const;
 export type AvatarId = (typeof AVATAR_IDS)[number];
 
@@ -86,6 +94,14 @@ export const AVATAR_LABELS: Record<AvatarId, string> = {
   spreadsheet: 'Spreadsheet',
   plant: 'Plant',
   stamp: 'Rubber stamp',
+  rocket: 'Rocket',
+  megaphone: 'Megaphone',
+  laptop: 'Laptop',
+  lightbulb: 'Light bulb',
+  chart: 'Bar chart',
+  sunglasses: 'Sunglasses',
+  crown: 'Crown',
+  badge: 'Name badge',
 };
 
 export const PACKS = ['mixed', 'everyday', 'campus-work'] as const;
