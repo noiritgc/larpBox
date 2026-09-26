@@ -129,6 +129,45 @@ Verified (`npx playwright test tests/e2e/reconnect.spec.ts`, 5 tests passed):
   returns paused, and Resume continues.
 - A second tab for the same seat must press "Use this tab"; the replaced tab stays stopped.
 
+## Milestone 5 — full visual design: done
+
+- Original visual system: paper/ink/cobalt/acid-yellow tokens only (Tailwind's palette is
+  replaced), self-hosted Latin fonts, hard-shadow cards and buttons, rubber stamps, eight original
+  two-color avatar silhouettes plus an identical anonymous avatar, name-badge roster rows.
+- Every route and screen in spec section 4, with its copy. TV type interpolates between the spec's
+  1280×720 and 1920×1080 sizes; short displays drop decoration and tighten spacing before any text
+  shrinks, post text never goes below 24px, and overflowing TV content scrolls with an explicit
+  cue. Phones fit 360px, survive 200% zoom without sideways scrolling, and keep the round/timer
+  row pinned.
+- Motion: 180ms enter transitions, a truth-banner slide, stamp drops, 500ms Clout count-up, a
+  one-time 400ms scoreboard reorder, a two-second 80-particle confetti, and a marquee. All are
+  removed by `prefers-reduced-motion` or the local "Reduced motion: On" preference.
+- Host-only Web Audio cues (join, phase, truth, results, final) at gain 0.12, unlocked by a host
+  click, deduplicated per phase via sessionStorage, always-visible mute.
+- Accessibility: semantic landmarks, labelled radio groups with keyboard arrows, native modal
+  dialogs, a polite live region, focus moved to each new screen's heading, a single ten-seconds
+  announcement, and visible and aria-hidden "Selected" labels (state comes from aria-checked).
+- Dev-only `/dev` scenario gallery (ENABLE_DEVTOOLS=true in the Vite dev server, compiled out of
+  builds) with 36 fixture scenarios, and `scripts/capture-gallery.mjs` for screenshot review.
+
+Verified:
+
+- `node scripts/capture-gallery.mjs`: all 36 scenarios at TV 1920×1080 and 1280×720 and phone 390×844
+  and 360×640. No page errors, no horizontal overflow, TV post text ≥ 24px. Screenshots reviewed.
+  Two 280-grapheme, four-line posts fit side by side at 1280×720 on READ. Key phone screens have no
+  horizontal overflow at 200% zoom (195px CSS layout).
+- `npx playwright test tests/e2e/a11y.spec.ts`: zero axe-core WCAG 2.1 A/AA violations on `/`,
+  `/join`, `/help`, `/host/new`, the 404, and live host and phone lobby, writing, guess, endorse
+  and result screens.
+- `npx playwright test tests/e2e/visual.spec.ts`: real games at TV 1920×1080 with phone 390×844,
+  and TV 1280×720 with phone 360×640 (one phone at 150% zoom, reduced motion). No horizontal
+  overflow, no clipped post text, TV post text ≥ 24px on every screen.
+- Contrast computed from the tokens: muted on paper 6.1:1, white on cobalt 6.7:1, ink on yellow
+  16:1, red on red-tint 5.5:1, amber on paper 5.4:1, placeholder on white 5.2:1.
+- Web component tests (Vitest + Testing Library, jsdom): 17 passing, covering autosave debounce,
+  single in-flight save, lock after save, restore after refresh, HTML rendered as text, identical
+  anonymous cards, keyboard radio groups, snapshot revision ordering, and audio cue dedupe.
+
 ## Deviations from the spec
 
 - ESLint 10 instead of 9: ESLint 9 is marked unsupported by its maintainers; the spec does not pin a
@@ -145,4 +184,4 @@ Verified (`npx playwright test tests/e2e/reconnect.spec.ts`, 5 tests passed):
 
 ## Remaining work
 
-Milestones 5–6.
+Milestone 6.
