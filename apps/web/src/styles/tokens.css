@@ -1,0 +1,26 @@
+/* Design tokens from the Larpbox TV spec (section 3.3). Components read these, never raw hex. */
+:root {
+  --paper: #f6f3eb;
+  --surface: #ffffff;
+  --ink: #171717;
+  --muted: #595b62;
+  --line: #c8c5bd;
+  --blue: #1747e7;
+  --blue-hover: #1036b7;
+  --yellow: #e9ff70;
+  --green: #166534;
+  --red: #b42318;
+  --red-bg: #fee4e2;
+  --blue-bg: #eaf0ff;
+  --amber: #8a5a00;
+  --amber-bg: #fff4d6;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-card: 5px 5px 0 var(--ink);
+  --shadow-button: 3px 3px 0 var(--ink);
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
