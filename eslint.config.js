@@ -31,6 +31,11 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
   {
+    // Review scripts run in Node and pass callbacks into the browser through Playwright.
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     files: ['apps/web/src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
