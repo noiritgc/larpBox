@@ -16,7 +16,7 @@
     "dev": "npm run build -w @larpbox/shared && concurrently -k -n shared,server,web -c gray,blue,magenta \"npm run dev -w @larpbox/shared\" \"npm run dev -w @larpbox/server\" \"npm run dev -w @larpbox/web\"",
     "build": "npm run build -w @larpbox/shared && npm run build -w @larpbox/web && npm run build -w @larpbox/server",
     "start": "node apps/server/dist/index.js",
-    "typecheck": "npm run build -w @larpbox/shared && npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build -w @larpbox/shared && npm run typecheck --workspaces --if-present && tsc -p tests/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
