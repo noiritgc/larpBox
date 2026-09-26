@@ -106,6 +106,29 @@ Verified:
 - Screenshots of every phase at 1920×1080 and 390×844 reviewed; fixed a rotated truth banner that
   overlapped content, host overlay sizing, and toolbar button wrapping.
 
+## Milestone 4 — phone writing and recovery: done
+
+- Two-tab composer with live grapheme count (red over 280), "20 characters minimum" after
+  interaction, line/bidi errors, save status (Saving… / Saved / Saved on this phone; reconnecting…
+  / Couldn't save—retry), 15-second warning, auto-growing textarea, and Lock post.
+- Every keystroke is stored on the phone; server autosave is debounced (400ms) with one save in
+  flight, flushed on blur and tab switch, rebased after a revision conflict, and never able to
+  overwrite a locked post. Lock waits for the in-flight save and sends the complete text.
+- A refresh restores unsent text with a visible "restored" notice that stays until the next edit;
+  server locks and forfeits always win.
+
+Verified (`npx playwright test tests/e2e/reconnect.spec.ts`, 5 tests passed):
+
+- Reload mid-draft restores the text from the phone and saves it; a locked post survives reload
+  and the host counts it once.
+- An unlocked valid draft is auto-submitted at the deadline and labelled "Your saved draft was
+  submitted." for its owner; the empty post forfeits with the absence card.
+- A reader who goes offline (network emulation, not reload) and returns before the deadline can
+  still lock a guess; after missing the endorse deadline they cannot act.
+- Closing the host tab pauses every timer (phones show "The big screen disconnected"); the host
+  returns paused, and Resume continues.
+- A second tab for the same seat must press "Use this tab"; the replaced tab stays stopped.
+
 ## Deviations from the spec
 
 - ESLint 10 instead of 9: ESLint 9 is marked unsupported by its maintainers; the spec does not pin a
@@ -122,4 +145,4 @@ Verified:
 
 ## Remaining work
 
-Milestones 4–6.
+Milestones 5–6.
