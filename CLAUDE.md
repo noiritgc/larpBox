@@ -32,7 +32,11 @@ npm test                    # Vitest: unit, integration (real socket.io clients)
 npm run test:e2e            # Playwright, separate browser contexts, production build, GAME_TIME_SCALE=0.2
 ```
 
-Run a single Vitest file with `npx vitest run path/to/file.test.ts`.
+Run a single Vitest file with `npx vitest run path/to/file.test.ts`. Run one Playwright spec
+against an existing build with `E2E_SKIP_BUILD=1 npx playwright test tests/e2e/lobby.spec.ts`.
+The load test is `npx tsx tests/load/loadTest.ts`. The design gallery runs with
+`cd apps/web && ENABLE_DEVTOOLS=true npx vite --port 5199` (open `/dev`), and
+`node scripts/capture-gallery.mjs` screenshots every scenario at TV and phone sizes.
 
 ## Layout
 
@@ -61,6 +65,26 @@ Run a single Vitest file with `npx vitest run path/to/file.test.ts`.
   tests inject `FakeClock`.
 - Never log tokens, idempotency request IDs, post text, guesses, ballots, or snapshots.
 - User strings render as React text only. No `dangerouslySetInnerHTML`.
+
+## Testing layout
+
+- Engine and projection tests live next to the code (`apps/server/src/**/*.test.ts`) and use
+  `apps/server/src/testing/harness.ts` (FakeClock, scripted players, independent score check).
+- `tests/integration`: the in-process service driven by real socket.io clients (`helpers.ts`).
+- `tests/e2e` + `tests/helpers/players.ts`: Playwright against the production build with
+  `GAME_TIME_SCALE=0.2`. `playerBot` plays a phone through the UI only.
+- Web component tests live under `apps/web/src/**/*.test.tsx` (jsdom). Dev fixtures in
+  `apps/web/src/dev/fixtures.ts` must keep passing the strict view schemas.
+
+## Gotchas
+
+- Writing `\uXXXX` escapes through editing tools can produce literal invisible characters
+  (U+2028 inside a regex literal breaks the build). After editing regex-heavy files such as
+  `packages/shared/src/text.ts`, check them with `grep -nP '[^\x00-\x7F]'`.
+- Socket.IO sends the first `room:state` in the same tick as the connection: attach listeners
+  before calling `connect()` (the web client and test helpers already do this).
+- The production CSP blocks inline `<style>`; in Playwright, change styles through CSSOM
+  (`element.style.setProperty`) instead of `page.addStyleTag`.
 
 ## Git
 
