@@ -122,7 +122,9 @@ function NameStep({ code }: { code: string }) {
         setPreviewError(
           failure instanceof HttpFailure && (failure.code === 'ROOM_NOT_FOUND' || failure.code === 'ROOM_ENDED')
             ? "We couldn't find that room. It may have ended."
-            : 'Could not check this room. You can still try to join.',
+            : failure instanceof HttpFailure && failure.code === 'NOT_FOUND'
+              ? failure.message
+              : 'Could not check this room. You can still try to join.',
         );
       });
     return () => {

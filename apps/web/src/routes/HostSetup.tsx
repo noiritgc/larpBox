@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, estimateRangeMinutes, MAX_PLAYERS, MIN_PLAYERS, type RoomSettings } from '@larpbox/shared';
 import { ArrowLeft, Laptop } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Wordmark } from '../components/game/Wordmark';
 import { SettingsFields } from '../components/host/SettingsFields';
@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import { ChoiceGroup } from '../components/ui/ChoiceGroup';
 import { StatusBanner } from '../components/ui/StatusBanner';
 import { hostAudio } from '../lib/audio';
-import { createRoom, HttpFailure } from '../lib/http';
+import { checkServer, createRoom, HttpFailure } from '../lib/http';
 import { uuid } from '../lib/ids';
 import { readPrefs, writePrefs } from '../lib/prefs';
 import { clearPendingRequest, pendingRequestId, rememberPendingRequest, saveHostCredential } from '../lib/session';
@@ -19,7 +19,18 @@ export default function HostSetup() {
   const [prefs, setPrefs] = useState(readPrefs);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [server, setServer] = useState<'checking' | 'ok' | 'missing' | 'unreachable'>('checking');
   const range = estimateRangeMinutes(settings);
+
+  useEffect(() => {
+    let cancelled = false;
+    void checkServer().then((result) => {
+      if (!cancelled) setServer(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const create = async () => {
     if (creating) return;
@@ -57,6 +68,21 @@ export default function HostSetup() {
       </header>
       <main className="grid gap-6">
         <h1 className="font-display text-[36px] leading-[1.05] md:text-[48px]">Let's make this a networking event.</h1>
+        {server === 'missing' ? (
+          <StatusBanner tone="red" icon="warning" role="alert">
+            <p>This site isn't connected to the Larpbox game server, so rooms can't be created here.</p>
+            <p className="mt-1 text-[15px] font-medium">
+              The game server serves these pages, the API and the live connections together. A static-only
+              deploy (such as a Vercel project pointed at apps/web) can't run games. Deploy the whole app to a
+              Node host instead, as described in the README.
+            </p>
+          </StatusBanner>
+        ) : null}
+        {server === 'unreachable' ? (
+          <StatusBanner tone="amber" icon="offline">
+            Can't reach the game server right now. Check your connection, then try creating the room.
+          </StatusBanner>
+        ) : null}
         <div className="lg:hidden">
           <StatusBanner tone="blue" icon="none">
             <span className="inline-flex items-center gap-2">

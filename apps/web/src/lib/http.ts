@@ -1,6 +1,7 @@
 import {
   ApiErrorSchema,
   CreateRoomResponseSchema,
+  HealthResponseSchema,
   JoinRoomResponseSchema,
   RoomPreviewSchema,
   type AvatarId,
@@ -32,6 +33,10 @@ export class HttpFailure extends Error {
 }
 
 const REQUEST_TIMEOUT_MS = 10_000;
+
+/** Shown when /api answers like a static file host: the web app was deployed without its server. */
+export const MISSING_SERVER_MESSAGE =
+  "This site isn't connected to the Larpbox game server, so rooms can't be created or joined here.";
 
 async function request<S extends z.ZodType>(
   method: 'GET' | 'POST',
@@ -69,10 +74,22 @@ async function request<S extends z.ZodType>(
       if (parsed.data.error.retryAfterMs !== undefined) details.retryAfterMs = parsed.data.error.retryAfterMs;
       throw new HttpFailure('api', parsed.data.error.message, parsed.data.error.code, details);
     }
+    // The game server answers /api with structured JSON, so anything else came from something in front
+    // of it: a proxy that can't reach it, or a static host serving only the built web app.
+    if (response.status >= 500) {
+      throw new HttpFailure('network', "Couldn't reach the game server. Try again in a moment.", null, { status: response.status });
+    }
+    if (response.status === 404 || response.status === 405) {
+      throw new HttpFailure('api', MISSING_SERVER_MESSAGE, 'NOT_FOUND', { status: response.status });
+    }
     throw new HttpFailure('api', `The server answered ${response.status}.`, 'INTERNAL_ERROR', { status: response.status });
   }
   const parsed = schema.safeParse(payload);
-  if (!parsed.success) throw new HttpFailure('api', 'The server sent something unexpected.', 'INTERNAL_ERROR');
+  if (!parsed.success) {
+    // A page where JSON belongs: a static host's fallback page is answering instead of the API.
+    if (payload === null) throw new HttpFailure('api', MISSING_SERVER_MESSAGE, 'NOT_FOUND', { status: response.status });
+    throw new HttpFailure('api', 'The server sent something unexpected.', 'INTERNAL_ERROR');
+  }
   return parsed.data;
 }
 
@@ -89,6 +106,17 @@ async function withRetries<T>(attempt: () => Promise<T>, retries = 2): Promise<T
     }
   }
   throw lastError;
+}
+
+/** 'ok' when the game server answers at this origin, 'missing' when something else (a static host) does. */
+export async function checkServer(): Promise<'ok' | 'missing' | 'unreachable'> {
+  try {
+    await request('GET', '/api/health', HealthResponseSchema);
+    return 'ok';
+  } catch (failure) {
+    if (failure instanceof HttpFailure && failure.code === 'NOT_FOUND') return 'missing';
+    return 'unreachable';
+  }
 }
 
 export function createRoom(createRequestId: string, settings: RoomSettings): Promise<CreateRoomResponse> {
