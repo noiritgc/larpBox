@@ -1,5 +1,6 @@
+import type { IncomingMessage } from 'node:http';
 import { describe, expect, it } from 'vitest';
-import { createOriginPolicy, isLocalNetworkHost, isLoopbackHost } from './origins.js';
+import { createIpResolver, createOriginPolicy, isLocalNetworkHost, isLoopbackHost } from './origins.js';
 
 describe('origin policy', () => {
   it('recognizes local-network hosts', () => {
@@ -28,5 +29,30 @@ describe('origin policy', () => {
     expect(development.isAllowed('http://192.168.1.20:5173')).toBe(true);
     expect(development.isAllowed('https://evil.example')).toBe(false);
     expect(development.isAllowed('not a url')).toBe(false);
+  });
+});
+
+describe('client IP resolver', () => {
+  const request = (remoteAddress: string, forwardedFor?: string) =>
+    ({
+      socket: { remoteAddress },
+      headers: forwardedFor === undefined ? {} : { 'x-forwarded-for': forwardedFor },
+    }) as unknown as IncomingMessage;
+
+  it('ignores X-Forwarded-For unless a proxy is trusted', () => {
+    expect(createIpResolver(false)(request('203.0.113.9', '198.51.100.1'))).toBe('203.0.113.9');
+  });
+
+  it("finds the player behind Render's three proxies, even when the header is spoofed", () => {
+    // Cloudflare, Render's load balancer and a local proxy each append the address they saw.
+    const resolve = createIpResolver(3);
+    expect(resolve(request('127.0.0.1', '41.90.172.99, 172.71.146.118, 10.26.236.170'))).toBe('41.90.172.99');
+    expect(resolve(request('127.0.0.1', '6.6.6.6, 41.90.172.99, 172.71.146.118, 10.26.236.170'))).toBe('41.90.172.99');
+  });
+
+  it('trusts exact proxy subnets', () => {
+    const resolve = createIpResolver('loopback, 10.0.0.0/8');
+    expect(resolve(request('127.0.0.1', '198.51.100.7, 10.1.2.3'))).toBe('198.51.100.7');
+    expect(resolve(request('203.0.113.9', '198.51.100.7'))).toBe('203.0.113.9');
   });
 });

@@ -13,8 +13,11 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().min(1).default('0.0.0.0'),
   PORT: z.coerce.number().int().min(0).max(65535).default(3001),
-  PUBLIC_ORIGIN: z.string().default('http://localhost:5173'),
+  PUBLIC_ORIGIN: z.string().optional(),
   ALLOWED_ORIGINS: z.string().optional(),
+  // Set automatically by Render for web services (https://<service>.onrender.com).
+  RENDER_EXTERNAL_URL: z.string().optional(),
+  RENDER_EXTERNAL_HOSTNAME: z.string().optional(),
   MAX_ROOMS: positiveInt(100),
   MAX_SOCKETS: positiveInt(900),
   ROOM_MAX_AGE_MS: positiveInt(6 * 60 * 60 * 1000),
@@ -98,12 +101,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   }
   const e = parsed.data;
 
-  const publicOrigin = parseOrigin(e.PUBLIC_ORIGIN, 'PUBLIC_ORIGIN');
-  const allowed = new Set<string>([publicOrigin]);
-  for (const origin of (e.ALLOWED_ORIGINS ?? '').split(',')) {
-    if (origin.trim()) allowed.add(parseOrigin(origin, 'ALLOWED_ORIGINS'));
-  }
-
   if (e.NODE_ENV === 'production' && e.ENABLE_DEVTOOLS) {
     throw new ConfigError('ENABLE_DEVTOOLS must be false when NODE_ENV=production.');
   }
@@ -111,6 +108,25 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new ConfigError(
       'GAME_TIME_SCALE may differ from 1 only when NODE_ENV=test and HOST is a loopback address.',
     );
+  }
+
+  // The platform's own public URL (Render sets it for every web service) is a safe fallback: it is
+  // configuration, never a request header.
+  const platformUrl =
+    e.RENDER_EXTERNAL_URL ?? (e.RENDER_EXTERNAL_HOSTNAME ? `https://${e.RENDER_EXTERNAL_HOSTNAME}` : undefined);
+  const platformOrigin = platformUrl ? parseOrigin(platformUrl, 'RENDER_EXTERNAL_URL') : undefined;
+  if (e.NODE_ENV === 'production' && !e.PUBLIC_ORIGIN && !platformOrigin) {
+    throw new ConfigError(
+      'PUBLIC_ORIGIN must be set in production to the public URL players open (for example https://larpbox.example). QR codes and join links are built from it.',
+    );
+  }
+  const publicOrigin = e.PUBLIC_ORIGIN
+    ? parseOrigin(e.PUBLIC_ORIGIN, 'PUBLIC_ORIGIN')
+    : (platformOrigin ?? 'http://localhost:5173');
+  const allowed = new Set<string>([publicOrigin]);
+  if (platformOrigin) allowed.add(platformOrigin);
+  for (const origin of (e.ALLOWED_ORIGINS ?? '').split(',')) {
+    if (origin.trim()) allowed.add(parseOrigin(origin, 'ALLOWED_ORIGINS'));
   }
 
   return {

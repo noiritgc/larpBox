@@ -68,7 +68,25 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ NODE_ENV: 'development', HOST: '127.0.0.1', GAME_TIME_SCALE: '0.5' })).toThrow(
       /GAME_TIME_SCALE/,
     );
-    expect(loadConfig({ NODE_ENV: 'production', GAME_TIME_SCALE: '1' }).gameTimeScale).toBe(1);
+    expect(loadConfig({ NODE_ENV: 'production', GAME_TIME_SCALE: '1', PUBLIC_ORIGIN: 'https://play.example' }).gameTimeScale).toBe(1);
+  });
+
+  it('requires a public origin in production instead of building localhost QR codes', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/PUBLIC_ORIGIN must be set in production/);
+    expect(loadConfig({ NODE_ENV: 'production', PUBLIC_ORIGIN: 'https://play.example' }).publicOrigin).toBe('https://play.example');
+  });
+
+  it("falls back to the platform's public URL (Render) and always allows it", () => {
+    const render = loadConfig({ NODE_ENV: 'production', RENDER_EXTERNAL_URL: 'https://larpbox-tv.onrender.com' });
+    expect(render.publicOrigin).toBe('https://larpbox-tv.onrender.com');
+    expect(render.allowedOrigins).toEqual(['https://larpbox-tv.onrender.com']);
+    expect(loadConfig({ NODE_ENV: 'production', RENDER_EXTERNAL_HOSTNAME: 'larpbox-tv.onrender.com' }).publicOrigin).toBe(
+      'https://larpbox-tv.onrender.com',
+    );
+    // A custom domain wins for QR codes; the onrender.com address keeps working.
+    const custom = loadConfig({ NODE_ENV: 'production', PUBLIC_ORIGIN: 'https://larpbox.party', RENDER_EXTERNAL_URL: 'https://larpbox-tv.onrender.com' });
+    expect(custom.publicOrigin).toBe('https://larpbox.party');
+    expect(custom.allowedOrigins).toEqual(['https://larpbox.party', 'https://larpbox-tv.onrender.com']);
   });
 
   it('parses explicit proxy trust settings', () => {
