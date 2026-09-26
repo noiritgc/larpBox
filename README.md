@@ -88,7 +88,7 @@ a clear message. Production reads the real process environment and never needs a
 | `NODE_ENV` | `development` | `development`, `test` or `production`. |
 | `HOST` | `0.0.0.0` | Interface to listen on. |
 | `PORT` | `3001` | Port to listen on. |
-| `PUBLIC_ORIGIN` | `http://localhost:5173` | Origin players use; QR codes and join links are built from it. |
+| `PUBLIC_ORIGIN` | `http://localhost:5173` | Origin players use; QR codes and join links are built from it. Required in production, except on Render, where it defaults to the service's `onrender.com` address (`RENDER_EXTERNAL_URL`). |
 | `ALLOWED_ORIGINS` | *(empty)* | Extra comma-separated browser origins for the API and sockets. `PUBLIC_ORIGIN` is always allowed. |
 | `MAX_ROOMS` | `100` | Live rooms at once. |
 | `MAX_SOCKETS` | `900` | Authenticated sockets at once. |
@@ -102,6 +102,57 @@ a clear message. Production reads the real process environment and never needs a
 | `GAME_TIME_SCALE` | `1` | Test only: scales every timer. Allowed only with `NODE_ENV=test` on a loopback `HOST`. |
 
 ## Production
+
+Larpbox TV is one Node process that serves the built web app, the `/api` routes and the Socket.IO
+connections from the same origin. Deploy the whole repository to a Node host; the web app alone
+can't run games.
+
+### Deploying to Render
+
+The repository includes a [Render Blueprint](render.yaml) for a single Node web service.
+Blueprints need Render connected to the GitHub account that owns the repository.
+
+1. In the Render dashboard, choose **New > Blueprint**, select this repository and click
+   **Connect**.
+2. Name the Blueprint, keep the `main` branch and click **Deploy Blueprint**. Render runs
+   `npm ci --include=dev && npm run build`, starts `node apps/server/dist/index.js` and checks
+   `/api/health`. If the name `larpbox-tv` is taken, Render adds a suffix.
+3. Open `https://<service-name>.onrender.com` and choose **Host a game**. QR codes and join links
+   use that address automatically.
+
+Without access to the owner's GitHub account, deploy the public repository by URL instead. Choose
+**New > Web Service > Public Git Repository**, paste the repository URL, then set:
+
+| Setting | Value |
+| --- | --- |
+| Language | Node |
+| Build Command | `npm ci --include=dev && npm run build` |
+| Start Command | `node apps/server/dist/index.js` |
+| Health Check Path (Advanced) | `/api/health` |
+| Environment variables | `NODE_VERSION=24`, `NODE_ENV=production`, `TRUST_PROXY=3` |
+
+Render doesn't auto-deploy services created this way: use **Manual Deploy > Deploy latest commit**
+after pushing.
+
+Notes:
+
+- The Blueprint uses the **free** instance type. Free services sleep after 15 minutes without
+  traffic (the next visit takes about a minute to wake them) and can restart at any time. Either
+  ends every room. Use a paid instance type for events.
+- Every deploy restarts the server and ends live rooms. Don't push to `main` during a game, or turn
+  off auto-deploy for the service.
+- For a custom domain, add it in Render, then set `PUBLIC_ORIGIN=https://your.domain`. The
+  `onrender.com` address keeps working.
+- Keep one instance. Rooms live in memory, so more instances would split players between rooms.
+- `TRUST_PROXY=3` follows Render's proxy chain as measured publicly (Cloudflare, Render's load
+  balancer and a local proxy), so rate limits see each player's address. If unrelated groups start
+  hitting "Too many rooms from this network", Render has added a proxy: raise it by one.
+
+Static hosts such as Vercel or Netlify can't run Larpbox TV: they serve the built pages, but there
+is no game server behind `/api` or `/socket.io`, so creating a room fails. The host setup page says
+so when it detects this.
+
+### Any Node host
 
 ```bash
 npm ci
@@ -129,6 +180,8 @@ Deployment requirements:
   requests. Proxy idle timeouts must exceed 45 seconds (Socket.IO pings every 25 seconds and waits 20).
 - Set `TRUST_PROXY` to your proxy's hop count or address so rate limits see real client IPs.
 - Keep the instance awake during events. Free tiers that sleep will end games.
+- `NODE_ENV=production` refuses to start without `PUBLIC_ORIGIN` (or Render's
+  `RENDER_EXTERNAL_URL`), so QR codes never point at `localhost`.
 - `GET /api/health` returns `{ ok, protocolVersion, bootId, version }` once config and content are
   validated.
 
@@ -192,6 +245,9 @@ production builds.
 
 ## Troubleshooting
 
+- **"This site isn't connected to the Larpbox game server"**: the pages were deployed without the
+  server, for example to Vercel. Deploy the whole app to a Node host instead; see
+  [Deploying to Render](#deploying-to-render).
 - **"This page's address isn't allowed…"**: the browser's origin isn't in `ALLOWED_ORIGINS`.
   Add it and restart. The server log names the rejected origin.
 - **Phones can't open the QR link**: `PUBLIC_ORIGIN` is `localhost` or an address the phones

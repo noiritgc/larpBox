@@ -1,0 +1,32 @@
+# Render Blueprint: one Node web service that serves the built web app, the /api routes and the
+# Socket.IO connections from the same origin. In Render: New > Blueprint > pick this repository.
+#
+# PUBLIC_ORIGIN is optional here: the server falls back to RENDER_EXTERNAL_URL (the service's
+# https://<name>.onrender.com address, set by Render) for QR codes, join links and allowed origins.
+# Set PUBLIC_ORIGIN only when players should use a custom domain.
+services:
+  - type: web
+    name: larpbox-tv
+    runtime: node
+    # Free services sleep after 15 minutes without traffic and may restart at any time, which ends
+    # every room. Fine for trying it out; switch to a paid instance type before a real event.
+    plan: free
+    # Rooms live in memory: run exactly one instance. Never autoscale this service.
+    numInstances: 1
+    # NODE_ENV=production is also set during the build, so dev dependencies must be requested.
+    buildCommand: npm ci --include=dev && npm run build
+    # Run node directly so Render's SIGTERM reaches the server, which tells every device the room
+    # has ended before exiting.
+    startCommand: node apps/server/dist/index.js
+    healthCheckPath: /api/health
+    # Every deploy restarts the server and ends live rooms. Avoid pushing to main during an event.
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      # Requests reach the app through Cloudflare, Render's load balancer and a local proxy, so the
+      # player's address is three hops back in X-Forwarded-For. Rate limits are per address.
+      - key: TRUST_PROXY
+        value: "3"

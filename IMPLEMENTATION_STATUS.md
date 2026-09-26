@@ -201,6 +201,20 @@ Verified:
   `/play/KPRT`, `/join/KPRT` and `/help`. SIGTERM with a connected host delivered `room:closed`
   (`SERVER_SHUTDOWN`) and the process exited 0. The prompt pack is bundled in
   `apps/server/dist/index.js`.
+- Render deployment rehearsal (after the Vercel 404): a clean copy of the repository (tracked files
+  only, no `node_modules`, `dist` or `.env`) was built with Render's commands under
+  `NODE_ENV=production` (`npm ci --include=dev && npm run build`) and started with
+  `node apps/server/dist/index.js`, `PORT=10000`, `TRUST_PROXY=3` and
+  `RENDER_EXTERNAL_URL=http://127.0.0.1:10000` in place of Render's value. 12/12 checks passed:
+  health, `/`, `/host/new` and `/join/ABCD` pages, room creation from the public origin (join link
+  built from `RENDER_EXTERNAL_URL`), a foreign origin refused with 403, JSON 404 for unknown `/api`
+  routes, preview, join, host socket snapshot, and SIGTERM delivering `room:closed`
+  (`SERVER_SHUTDOWN`) with exit 0. Without `PUBLIC_ORIGIN` or Render's variables, production
+  refuses to start with a clear message.
+- Static-only hosting check: the built `apps/web/dist` served by a plain file server that answers
+  404 for everything else (as Vercel did). Host setup shows the "isn't connected to the Larpbox game
+  server" banner, Create room and join-by-code explain the missing server instead of a bare 404, and
+  a proxy answering 502 shows the "can't reach" banner instead. 7/7 checks passed in Chromium.
 - Final full runs are recorded in "Final verification" below.
 
 Not verified here, with reasons:
@@ -211,7 +225,10 @@ Not verified here, with reasons:
   runs WSL2 in NAT mode, which blocks phones from reaching the dev server (see README). The user
   reached the dev server from a LAN address (http://10.104.218.84:5173), which surfaced the origin
   allowlist issue fixed in commit 1aed54d. A full game from real phones still needs to be played.
-- **Public HTTPS deployment**: none performed (not authorized, and no domain was purchased).
+- **Public HTTPS deployment**: none performed from here. `render.yaml` is ready and its build and
+  start commands were rehearsed locally, but the service is created from the user's Render
+  account. `TRUST_PROXY=3` follows a published measurement of Render's proxy chain (Cloudflare,
+  Render's load balancer, a local proxy); it has not been measured on this service.
 - **Audio**: cue scheduling is unit-tested with a fake AudioContext; the sounds themselves were
   not listened to in this environment.
 
@@ -219,13 +236,15 @@ Not verified here, with reasons:
 
 | Command | Result |
 | --- | --- |
-| `npm run typecheck` | exit 0 (shared, server, web, web config, tests) |
-| `npm run lint` | exit 0 |
-| `npx vitest run` | 16 files, 192 tests passed |
-| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 22 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.2 min |
+| `npm run typecheck` | exit 0 (shared, server, web, web config, tests); rerun after the Render changes |
+| `npm run lint` | exit 0; rerun after the Render changes |
+| `npx vitest run` | 16 files, 197 tests passed (after the Render changes; 192 before) |
+| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 22 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.1 min; rerun after the Render changes |
 | `npx tsx tests/load/loadTest.ts` | passed: 10 × 8-player Standard games, ack p95 37.6ms, 0 leaks, 0 timers left |
 | `node scripts/capture-gallery.mjs` | 36 scenarios × 2 sizes each, no overflow, TV post text ≥ 24px |
 | Production runtime smoke + SIGTERM | passed (see Milestone 6) |
+| Render rehearsal (clean copy, Render's build and start commands) | 12/12 checks passed (see Milestone 6) |
+| Static-only host check (Chromium) | 7/7 checks passed (see Milestone 6) |
 
 ## Definition of done (spec section 19)
 
@@ -270,6 +289,11 @@ Not verified here, with reasons:
   192.168/16, 169.254/16, 100.64/10, `*.local`) so LAN testing works before `.env` is edited.
   Production accepts only `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS`. Added after the user hit the
   origin check from a LAN address.
+- Production refuses to start without a public origin rather than building `localhost` QR codes.
+  On Render, `PUBLIC_ORIGIN` falls back to `RENDER_EXTERNAL_URL` (the service's `onrender.com`
+  address), which is always allowed. `render.yaml` deploys one native Node service. Added after
+  a static-only Vercel deploy of `apps/web` returned 404 for room creation; the host setup page now
+  detects a missing game server and says so instead of showing the bare status.
 - Screenshot "assertions" are layout assertions (overflow, clipping, 24px post text, no axe
   violations) plus saved screenshots reviewed by an image-capable agent. Pixel baselines were not
   used because room codes, timers and font rasterization vary between runs and machines.

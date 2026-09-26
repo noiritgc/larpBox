@@ -48,6 +48,8 @@ The load test is `npx tsx tests/load/loadTest.ts`. The design gallery runs with
   and the phone controller.
 - `tests/integration`: in-process service driven by real socket.io clients.
 - `tests/e2e`: Playwright multi-context games.
+- `render.yaml`: Render Blueprint (one native Node service, one instance). The game can't run on a
+  static host; production needs `PUBLIC_ORIGIN` or Render's `RENDER_EXTERNAL_URL`.
 
 ## Invariants
 
