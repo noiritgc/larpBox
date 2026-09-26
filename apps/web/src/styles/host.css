@@ -111,7 +111,8 @@
     box-shadow: var(--shadow-button);
   }
   .host-timer-urgent {
-    background: var(--yellow);
+    background: var(--red);
+    color: #ffffff;
   }
 
   .host-room-code {

@@ -13,13 +13,14 @@ import { Timer } from '../ui/Timer';
 
 type DuelView = PlayerView & { screen: Extract<PlayerView['screen'], { kind: 'DUEL_READ' | 'DUEL_GUESS' | 'DUEL_ENDORSE' }> };
 
-function DuelHeader({ view }: { view: PlayerView }) {
+/** `pending`: this player still has to guess or endorse, so the timer warns loudly near zero. */
+function DuelHeader({ view, pending = false }: { view: PlayerView; pending?: boolean }) {
   return (
     <div className="phone-sticky-bar">
       <span className="min-w-0 flex-1 font-mono text-[14px] font-medium leading-tight">
         Round {view.roundNumber} · Post-off {view.duelNumber} of {view.duelsInRound}
       </span>
-      <Timer phase={view.phase} variant="phone" />
+      <Timer phase={view.phase} variant="phone" pending={pending} />
     </div>
   );
 }
@@ -121,7 +122,7 @@ function GuessScreen({ view, connection, connected }: { view: DuelView; connecti
 
   return (
     <div className="grid gap-4 enter">
-      <DuelHeader view={view} />
+      <DuelHeader view={view} pending={!lockedId} />
       <ScreenHeading className="phone-heading">What actually happened?</ScreenHeading>
       <CollapsiblePosts posts={screen.posts} mySide={null} />
       {lockedId ? (
@@ -232,7 +233,7 @@ function EndorseScreen({ view, connection, connected }: { view: DuelView; connec
 
   return (
     <div className="grid gap-4 enter">
-      <DuelHeader view={view} />
+      <DuelHeader view={view} pending={me.endorsement === null} />
       <ScreenHeading className="phone-heading">Who made the most out of the least?</ScreenHeading>
       {truthBlock}
       {me.guessCorrect !== null ? (

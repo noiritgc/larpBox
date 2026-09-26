@@ -262,7 +262,7 @@ export function ControllerWriter({
     <div className="grid gap-4">
       <div className="phone-sticky-bar">
         <ScreenHeading className="font-display text-[22px] leading-none">Round {view.roundNumber}</ScreenHeading>
-        <Timer phase={view.phase} variant="phone" urgentBelow={15} />
+        <Timer phase={view.phase} variant="phone" urgentBelow={15} pending={assignments.some((assignment) => assignment.status === 'DRAFT')} />
       </div>
       {warn ? (
         <StatusBanner tone="yellow" icon="warning" role="alert">

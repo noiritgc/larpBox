@@ -740,11 +740,32 @@
   }
 }
 
+@keyframes lb-urgent-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes lb-urgent-edge {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Reduced motion: system setting, or the local "On" preference (data attribute on <html>). */
 @media (prefers-reduced-motion: reduce) {
   .enter,
   .stamp-in,
-  .truth-in {
+  .truth-in,
+  .phone-timer-alarm,
+  .urgency-edge {
     animation: none;
   }
   .btn:active:not(:disabled),
@@ -757,7 +778,9 @@
 }
 :root[data-motion='reduced'] .enter,
 :root[data-motion='reduced'] .stamp-in,
-:root[data-motion='reduced'] .truth-in {
+:root[data-motion='reduced'] .truth-in,
+:root[data-motion='reduced'] .phone-timer-alarm,
+:root[data-motion='reduced'] .urgency-edge {
   animation: none;
 }
 :root[data-motion='reduced'] .btn:active:not(:disabled),
