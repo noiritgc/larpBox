@@ -168,20 +168,122 @@ Verified:
   single in-flight save, lock after save, restore after refresh, HTML rendered as text, identical
   anonymous cards, keyboard radio groups, snapshot revision ordering, and audio cue dedupe.
 
+## Milestone 6 — production and handoff: done (pending: real-phone check, Docker build)
+
+- End-to-end matrix (`tests/e2e`, Playwright, production build, one browser context per device):
+  `completeGame` (3-player Standard with rematch; 5-player Quick), `lobby` (8-player game with the
+  ninth join refused and 16 posts per round, duplicate names, late join, remove and leave, direct
+  URL reloads, branded 404, hostless browser), `reconnect`, `hostControls` (settings reset
+  readiness, pause/resume, one extension, end room reaches everyone), `edgeCases` (all-forfeit
+  all-zero joint win, no votes, all Neither), `privacy` (secrecy checked on received Socket.IO
+  frames and polling responses; bundle free of prompt pack and dev gallery), `a11y`, `visual`.
+- Load: `tests/load/loadTest.ts`, 10 rooms × 8 players plus 10 hosts over real sockets, full
+  Standard games including autosaves.
+- Multi-stage `Dockerfile` (Node 24 slim, `npm ci`, build, production-only dependencies, non-root
+  `node` user, healthcheck, exec-form CMD) and `.dockerignore`.
+- `README.md`: setup, scripts, environment, phone/LAN/WSL2/venue networking, production and
+  Docker, restart behavior, testing, gallery, demo, troubleshooting.
+- Graceful shutdown: SIGTERM/SIGINT stops new rooms, sends every connected device `room:closed`
+  (`SERVER_SHUTDOWN`), closes sockets and exits.
+
+Verified:
+
+- Load run (`npx tsx tests/load/loadTest.ts`) on an AMD Ryzen AI 9 HX 370 (24 threads, 15 GiB, WSL2,
+  Node 24.21.0). Server and 90 clients shared one process and event loop, so the numbers are
+  conservative. Ten Standard 8-player games finished in 120.6s at `GAME_TIME_SCALE=0.2`. Command
+  acks: n=2980, p50 13.4ms, p95 37.6ms, p99 41.9ms, max 46.4ms (target p95 < 250ms). No unexpected
+  command failures. Every duel re-scored from its public result matched, final totals matched
+  on all 90 clients, and no client received another room's snapshot. After closing: 0 rooms and
+  0 pending game timers.
+- Production smoke from the Docker runtime layout (a scratch directory with only the root and
+  workspace manifests, `npm ci --omit=dev` node_modules, and the three `dist` folders; no sources):
+  `NODE_ENV=production node apps/server/dist/index.js` served `/api/health`, `/`, `/host/KPRT`,
+  `/play/KPRT`, `/join/KPRT` and `/help`. SIGTERM with a connected host delivered `room:closed`
+  (`SERVER_SHUTDOWN`) and the process exited 0. The prompt pack is bundled in
+  `apps/server/dist/index.js`.
+- Final full runs are recorded in "Final verification" below.
+
+Not verified here, with reasons:
+
+- **Docker image build/run**: Docker is not installed on this machine. The Dockerfile's runtime
+  stage was reproduced by hand (above), but `docker build` itself has not been run.
+- **Real phones on a LAN / QR scan by a separate phone**: requires physical devices. This machine
+  runs WSL2 in NAT mode, which blocks phones from reaching the dev server (see README). The user
+  reached the dev server from a LAN address (http://10.104.218.84:5173), which surfaced the origin
+  allowlist issue fixed in commit 1aed54d. A full game from real phones still needs to be played.
+- **Public HTTPS deployment**: none performed (not authorized, and no domain was purchased).
+- **Audio**: cue scheduling is unit-tested with a fake AudioContext; the sounds themselves were
+  not listened to in this environment.
+
+## Final verification (2026-09-26, Node 24.21.0)
+
+| Command | Result |
+| --- | --- |
+| `npm run typecheck` | exit 0 (shared, server, web, web config, tests) |
+| `npm run lint` | exit 0 |
+| `npx vitest run` | 16 files, 192 tests passed |
+| `npm run test:e2e` (fresh build, `GAME_TIME_SCALE=0.2`) | 22 passed, 1 skipped (opt-in `CAPTURE=1` screenshot helper), 5.2 min |
+| `npx tsx tests/load/loadTest.ts` | passed: 10 × 8-player Standard games, ack p95 37.6ms, 0 leaks, 0 timers left |
+| `node scripts/capture-gallery.mjs` | 36 scenarios × 2 sizes each, no overflow, TV post text ≥ 24px |
+| Production runtime smoke + SIGTERM | passed (see Milestone 6) |
+
+## Definition of done (spec section 19)
+
+- [x] A host creates a room and 3–8 independent browsers join with the code or QR link (e2e,
+      separate contexts; the QR encodes `PUBLIC_ORIGIN/join/CODE`).
+- [x] One or two configured rounds run from lobby through final results.
+- [x] Every player writes twice per round, including odd counts (engine N=3–8, e2e 5 and 8).
+- [x] Both competitors get exactly the same private facts.
+- [x] Readers guess before the truth, endorse after it, and authors are revealed after endorsing.
+- [x] Correctness and point allocation match the specification (independent recomputation in unit,
+      integration and load tests).
+- [x] No secrets are shipped early to the host, other phones or the bundle (projection walks,
+      network-frame checks, bundle scan).
+- [x] Missing posts, missing votes, ties and reconnects resolve without deadlock.
+- [x] Host disconnect/pause protects remaining time.
+- [x] Draft autosave/lock survives refresh and ack loss.
+- [x] Duplicate commands cannot duplicate points or overwrite locked work.
+- [x] All specified screens and error states are responsive and accessible (axe, layout checks,
+      screenshot review).
+- [ ] Real phone LAN/public-origin test with a QR scan by a separate phone: **not performed here**
+      (needs physical phones; see "Not verified here"). The dev server now accepts LAN origins, and
+      the README explains `PUBLIC_ORIGIN` for QR codes.
+- [x] Unit/integration/E2E tests passed; screenshots were inspected.
+- [x] The production build serves frontend, API and socket on one origin; refresh routes work.
+- [x] README covers setup, scripts, env, phone joining, deployment and restart loss.
+- [x] IMPLEMENTATION_STATUS lists actual verification and deviations.
+- [x] No API key, external AI judge, user account, LinkedIn integration or paid asset is required.
+
 ## Deviations from the spec
 
 - ESLint 10 instead of 9: ESLint 9 is marked unsupported by its maintainers; the spec does not pin a
   major.
 - `@vitejs/plugin-react` 5.x: version 6 requires Vite 8, and the spec selects Vite 7.
 - Error code `NOT_FOUND` added for unmatched `/api` routes (not in the spec's catalogue).
-- `room:closed` reasons add `REMOVED`, `LEFT`, `SERVER_SHUTDOWN` for kicked players, players who
+- `room:closed` reasons add `REMOVED`, `LEFT` and `SERVER_SHUTDOWN` for kicked players, players who
   leave, and graceful shutdown, alongside the spec's `HOST_ENDED` and `EXPIRED`.
 - `PublicPlayer` adds `joining` (reserved but never connected) so the lobby can show "Joining…".
-
 - Start-blocked, wrong-phase and "skip too early" commands return `FORBIDDEN` (the catalogue has no
   more specific code). A command whose phase ended by deadline gets `DEADLINE_PASSED`; any other
   stale phase gets `PHASE_CHANGED`.
+- Development mode also accepts local-network browser origins (localhost, 10/8, 172.16/12,
+  192.168/16, 169.254/16, 100.64/10, `*.local`) so LAN testing works before `.env` is edited.
+  Production accepts only `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS`. Added after the user hit the
+  origin check from a LAN address.
+- Screenshot "assertions" are layout assertions (overflow, clipping, 24px post text, no axe
+  violations) plus saved screenshots reviewed by an image-capable agent. Pixel baselines were not
+  used because room codes, timers and font rasterization vary between runs and machines.
+- The phone header scrolls with the page; only the round/timer row is sticky (spec 4.9 asks for
+  that row to be sticky). This keeps the timer from overlapping a wrapped header at large text
+  sizes.
+- On very short or narrow layouts, decorative elements are removed first: post card footers and
+  lobby headlines on 720p TVs, and small avatars on phones below 300 CSS px.
 
-## Remaining work
+## Known limitations
 
-Milestone 6.
+- Rooms live in one process's memory: a restart or redeploy ends every room (clients are told
+  honestly). Run a single instance; there is no horizontal scaling.
+- The server cannot judge whether a post invented facts. That is the readers' call, as designed.
+- Host audio is Web Audio synthesis only, unlocked by a host click. Phones are silent.
+- Rate limits are in-memory token buckets per process. Behind a proxy, `TRUST_PROXY` must be
+  configured for per-IP limits to be meaningful.
