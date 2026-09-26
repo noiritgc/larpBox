@@ -1,24 +1,44 @@
-import { useEffect, useState } from 'react';
-import { HealthResponseSchema, type HealthResponse } from '@larpbox/shared';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { LoadingBlock } from './components/common/SystemScreens';
+import { AnnouncerProvider } from './components/ui/Announcer';
+import { applyMotionPreference, readPrefs } from './lib/prefs';
+import { purgeStaleEntries } from './lib/session';
+import JoinRoom from './routes/JoinRoom';
+import Landing from './routes/Landing';
+import NotFound from './routes/NotFound';
 
-/** Milestone 1 placeholder: proves the web build, the /api proxy and the shared package work. */
+// Phones never download the host display code (and vice versa).
+const HostSetup = lazy(() => import('./routes/HostSetup'));
+const HostRoom = lazy(() => import('./routes/HostRoom'));
+const Controller = lazy(() => import('./routes/Controller'));
+const Help = lazy(() => import('./routes/Help'));
+// Compiled out of production builds entirely (see vite.config.ts).
+const ScenarioGallery = __LARPBOX_DEVTOOLS__ ? lazy(() => import('./dev/ScenarioGallery')) : null;
+
 export function App() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    fetch('/api/health')
-      .then((response) => response.json())
-      .then((body: unknown) => setHealth(HealthResponseSchema.parse(body)))
-      .catch(() => setError('Server unreachable'));
+    purgeStaleEntries();
+    applyMotionPreference(readPrefs().motion);
   }, []);
 
   return (
-    <main className="mx-auto max-w-xl p-6 font-body">
-      <h1 className="font-display text-4xl font-bold">larpbox TV</h1>
-      <p className="mt-4 font-mono text-muted">
-        {health ? `Server ok · protocol ${health.protocolVersion} · boot ${health.bootId.slice(0, 8)}` : (error ?? 'Checking server…')}
-      </p>
-    </main>
+    <AnnouncerProvider>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingBlock label="Loading…" />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/host/new" element={<HostSetup />} />
+            <Route path="/host/:code" element={<HostRoom />} />
+            <Route path="/join" element={<JoinRoom />} />
+            <Route path="/join/:code" element={<JoinRoom />} />
+            <Route path="/play/:code" element={<Controller />} />
+            <Route path="/help" element={<Help />} />
+            {ScenarioGallery ? <Route path="/dev" element={<ScenarioGallery />} /> : null}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </AnnouncerProvider>
   );
 }
