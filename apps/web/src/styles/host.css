@@ -1,0 +1,302 @@
+/*
+ * Shared TV/laptop display. Sizes interpolate linearly between the spec's 1280x720 and 1920x1080
+ * targets and clamp there; post text never drops below 24px.
+ */
+@layer base {
+  :root {
+    --host-pad: clamp(20px, 2.5vw, 48px);
+    --host-gap: clamp(14px, 1.6vw, 32px);
+    --host-heading: clamp(36px, calc(4px + 3.125vw), 64px);
+    --host-label: clamp(18px, calc(12px + 0.625vw), 24px);
+    --host-post: clamp(24px, calc(10px + 1.25vw), 34px);
+    --host-facts: clamp(20px, calc(10px + 0.9375vw), 28px);
+    --host-code: clamp(52px, calc(16px + 3.75vw), 88px);
+    --host-timer: clamp(28px, calc(12px + 1.25vw), 36px);
+    --host-wordmark: clamp(26px, calc(12px + 1.25vw), 36px);
+    --host-name: clamp(24px, calc(8px + 1.25vw), 32px);
+    --host-score: clamp(30px, calc(10px + 1.5625vw), 40px);
+  }
+}
+
+@layer components {
+  .host {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: var(--host-pad);
+    gap: var(--host-gap);
+    font-size: var(--host-label);
+    line-height: 1.3;
+  }
+
+  .host-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--host-gap);
+    min-height: 0;
+  }
+
+  .host-topbar {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.2vw, 24px);
+    flex-wrap: wrap;
+    min-height: 56px;
+  }
+  .host-topbar .wordmark {
+    font-size: var(--host-wordmark);
+  }
+  .host-topbar-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(16px, calc(8px + 0.625vw), 20px);
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .host-topbar-center strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .host-heading {
+    font-size: var(--host-heading);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .host-subheading {
+    font-size: var(--host-label);
+    color: var(--muted);
+  }
+
+  .host-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 3.6em;
+    justify-content: center;
+    padding: 4px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: var(--host-timer);
+    font-variant-numeric: tabular-nums;
+    box-shadow: var(--shadow-button);
+  }
+  .host-timer-urgent {
+    background: var(--yellow);
+  }
+
+  .host-room-code {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: var(--host-code);
+    line-height: 1;
+    letter-spacing: 0.2em;
+    user-select: all;
+  }
+
+  /* Anonymous and revealed posts on the big screen */
+  .host .post-card {
+    padding: clamp(16px, 1.4vw, 26px) clamp(18px, 1.6vw, 30px) clamp(12px, 1vw, 18px);
+    gap: clamp(10px, 0.9vw, 18px);
+  }
+  .host .post-body {
+    font-size: var(--host-post);
+    line-height: 1.28;
+  }
+  .host .post-author {
+    font-size: clamp(20px, calc(8px + 0.9375vw), 26px);
+  }
+  .host .post-subtitle {
+    font-size: clamp(15px, calc(7px + 0.625vw), 19px);
+  }
+  .host .post-foot {
+    font-size: clamp(15px, calc(7px + 0.625vw), 19px);
+  }
+  .host .post-side {
+    width: clamp(52px, 3.6vw, 70px);
+    height: clamp(52px, 3.6vw, 70px);
+    font-size: clamp(28px, 2vw, 40px);
+  }
+  .host-posts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--host-gap);
+    align-items: stretch;
+  }
+
+  .host-facts {
+    font-size: var(--host-facts);
+    line-height: 1.3;
+  }
+
+  .host-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(10px, 1vw, 20px);
+  }
+  .host-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: clamp(12px, 1vw, 20px) clamp(14px, 1.2vw, 24px);
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--surface);
+    font-size: var(--host-facts);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .host-option-number {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.8em;
+    height: 1.8em;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    background: var(--paper);
+  }
+  .host-option-correct {
+    background: var(--yellow);
+  }
+
+  .host-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .host-scroll-cue {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--muted);
+    background: linear-gradient(to top, var(--paper) 60%, transparent);
+  }
+
+  .host-roster {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .host-roster-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 72px;
+    padding: 8px 14px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  .host-roster-row-empty {
+    border-style: dashed;
+    border-color: var(--line);
+    background: transparent;
+    color: var(--muted);
+    box-shadow: none;
+  }
+  .host-roster-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--host-name);
+    line-height: 1.1;
+  }
+  .host-roster-headline {
+    font-size: clamp(14px, calc(6px + 0.625vw), 18px);
+    color: var(--muted);
+  }
+
+  .host-marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    border-block: 2px solid var(--ink);
+    padding: 10px 0;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+  .host-marquee-track {
+    display: inline-block;
+    animation: lb-marquee 60s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .host-marquee-track {
+      animation: none;
+    }
+  }
+  :root[data-motion='reduced'] .host-marquee-track {
+    animation: none;
+  }
+
+  .host-writer-tile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .host-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 30;
+    display: grid;
+    gap: 4px;
+    min-width: 240px;
+    padding: 8px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+  .host-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    font-weight: 600;
+    font-size: 17px;
+    text-align: left;
+  }
+  .host-menu-item:hover:not(:disabled) {
+    background: var(--blue-bg);
+  }
+  .host-menu-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .host-menu-item-danger {
+    color: var(--red);
+  }
+
+  .host-big-number {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(120px, 14vw, 260px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+}
