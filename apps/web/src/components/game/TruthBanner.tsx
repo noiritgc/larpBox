@@ -1,8 +1,11 @@
+import { Sticker } from './Sticker';
+
+/** The revealed truth as a freestanding sticker, only where the phase has revealed it. */
 export function TruthBanner({ truth, size = 'phone' }: { truth: string; size?: 'host' | 'phone' }) {
   return (
-    <div className="truth-banner truth-in" style={{ fontSize: size === 'host' ? 'var(--host-facts)' : '20px' }}>
-      <span className="truth-banner-label">What actually happened:</span>
-      <span>{truth}</span>
+    <div className={`grid justify-items-start gap-2 truth-in ${size === 'host' ? 'truth-host' : ''}`}>
+      <p className="eyebrow muted">What actually happened</p>
+      <Sticker placement="line">{truth}</Sticker>
     </div>
   );
 }
@@ -11,7 +14,7 @@ export function FactsList({ facts, boundaries, className = '' }: { facts: string
   return (
     <div className={`grid gap-3 ${className}`}>
       <div>
-        <p className="eyebrow mb-1">Must stay true</p>
+        <p className="eyebrow muted mb-1">Must stay true</p>
         <ul className="facts-list">
           {facts.map((fact) => (
             <li key={fact}>{fact}</li>
@@ -19,7 +22,7 @@ export function FactsList({ facts, boundaries, className = '' }: { facts: string
         </ul>
       </div>
       <div>
-        <p className="eyebrow mb-1">Off limits</p>
+        <p className="eyebrow muted mb-1">Off limits</p>
         <ul className="facts-list">
           {boundaries.map((boundary) => (
             <li key={boundary}>{boundary}</li>

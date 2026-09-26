@@ -1,35 +1,20 @@
 import { AVATAR_LABELS, type AvatarId } from '@larpbox/shared';
 import type { ReactNode } from 'react';
 
-/** Original flat two-color silhouettes. Color and icon both identify an avatar. */
-const PALETTE: Record<AvatarId | 'anonymous', { bg: string; fg: string }> = {
-  briefcase: { bg: '#1747E7', fg: '#FFFFFF' },
-  coffee: { bg: '#E9FF70', fg: '#171717' },
-  ladder: { bg: '#FFC9B5', fg: '#171717' },
-  trophy: { bg: '#166534', fg: '#E9FF70' },
-  necktie: { bg: '#B42318', fg: '#FFFFFF' },
-  spreadsheet: { bg: '#EAF0FF', fg: '#1747E7' },
-  plant: { bg: '#C9F2D4', fg: '#166534' },
-  stamp: { bg: '#171717', fg: '#E9FF70' },
-  rocket: { bg: '#FFB547', fg: '#171717' },
-  megaphone: { bg: '#7C3AED', fg: '#FFFFFF' },
-  laptop: { bg: '#D9D4C7', fg: '#171717' },
-  lightbulb: { bg: '#1E3A8A', fg: '#FFD84D' },
-  chart: { bg: '#0F766E', fg: '#FFFFFF' },
-  sunglasses: { bg: '#FF8FB1', fg: '#171717' },
-  crown: { bg: '#FFD84D', fg: '#171717' },
-  badge: { bg: '#FDE2E4', fg: '#B42318' },
-  anonymous: { bg: '#E4E1D8', fg: '#595B62' },
-};
+/**
+ * Outline avatars: one ink icon on paper, no per-player colors (the icon alone identifies an
+ * avatar). Cutouts inside a glyph are painted with the tile's own background.
+ */
+const CUT = { fill: 'var(--avatar-bg)' } as const;
 
-function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
+function glyph(id: AvatarId | 'anonymous'): ReactNode {
   switch (id) {
     case 'briefcase':
       return (
         <>
           <path d="M9 7.5V5.8c0-.7.6-1.3 1.3-1.3h3.4c.7 0 1.3.6 1.3 1.3v1.7h-1.8V6.3h-2.4v1.2Z" />
           <rect x="3.5" y="7.5" width="17" height="11.5" rx="1.8" />
-          <rect x="3.5" y="11.6" width="17" height="1.3" fill={bg} />
+          <rect x="3.5" y="11.6" width="17" height="1.3" style={CUT} />
           <rect x="10.8" y="10.8" width="2.4" height="2.9" rx=".6" />
         </>
       );
@@ -75,11 +60,11 @@ function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
       return (
         <>
           <rect x="3.5" y="4" width="17" height="16" rx="1.6" />
-          <rect x="3.5" y="8.4" width="17" height="1.3" fill={bg} />
-          <rect x="3.5" y="12.3" width="17" height="1.3" fill={bg} />
-          <rect x="3.5" y="16.2" width="17" height="1.3" fill={bg} />
-          <rect x="9" y="4" width="1.3" height="16" fill={bg} />
-          <rect x="14.6" y="4" width="1.3" height="16" fill={bg} />
+          <rect x="3.5" y="8.4" width="17" height="1.3" style={CUT} />
+          <rect x="3.5" y="12.3" width="17" height="1.3" style={CUT} />
+          <rect x="3.5" y="16.2" width="17" height="1.3" style={CUT} />
+          <rect x="9" y="4" width="1.3" height="16" style={CUT} />
+          <rect x="14.6" y="4" width="1.3" height="16" style={CUT} />
         </>
       );
     case 'plant':
@@ -105,7 +90,7 @@ function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
       return (
         <>
           <path d="M12 2.5c3 2 4.5 5.3 4.5 9.2V16h-9v-4.3c0-3.9 1.5-7.2 4.5-9.2Z" />
-          <circle cx="12" cy="9.4" r="1.8" fill={bg} />
+          <circle cx="12" cy="9.4" r="1.8" style={CUT} />
           <path d="M7.5 11.8 4.4 15.3v3.2l3.1-1.7Z" />
           <path d="M16.5 11.8l3.1 3.5v3.2l-3.1-1.7Z" />
           <path d="M10 17h4l-.9 3.2L12 21.8l-1.1-1.6Z" />
@@ -125,7 +110,7 @@ function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
       return (
         <>
           <rect x="5" y="4.5" width="14" height="10.5" rx="1.2" />
-          <rect x="6.6" y="6.1" width="10.8" height="7.3" rx=".4" fill={bg} />
+          <rect x="6.6" y="6.1" width="10.8" height="7.3" rx=".4" style={CUT} />
           <path d="M2.5 16.4h19l-1.2 2.4a1.4 1.4 0 0 1-1.2.7H4.9a1.4 1.4 0 0 1-1.2-.7Z" />
         </>
       );
@@ -167,8 +152,8 @@ function glyph(id: AvatarId | 'anonymous', bg: string): ReactNode {
         <>
           <path d="M7.6 2.5h2.2l2.2 5 2.2-5h2.2l-3.3 7.1h-2.2Z" />
           <rect x="5.2" y="9" width="13.6" height="12.5" rx="1.6" />
-          <circle cx="12" cy="13.4" r="2.1" fill={bg} />
-          <rect x="8.4" y="17.2" width="7.2" height="1.4" rx=".7" fill={bg} />
+          <circle cx="12" cy="13.4" r="2.1" style={CUT} />
+          <rect x="8.4" y="17.2" width="7.2" height="1.4" rx=".7" style={CUT} />
         </>
       );
     case 'anonymous':
@@ -194,16 +179,15 @@ export function Avatar({
   /** Hide from assistive tech when the adjacent text already names the person. */
   decorative?: boolean;
 }) {
-  const colors = PALETTE[id];
   const name = label ?? (id === 'anonymous' ? 'Anonymous professional' : AVATAR_LABELS[id]);
   return (
     <span
-      className="avatar"
-      style={{ width: size, height: size, background: colors.bg, borderRadius: Math.round(size * 0.28) }}
+      className={`avatar ${id === 'anonymous' ? 'avatar-anonymous' : ''}`}
+      style={{ width: size, height: size, borderRadius: Math.round(size * 0.24) }}
       {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': name })}
     >
-      <svg viewBox="0 0 24 24" fill={colors.fg} xmlns="http://www.w3.org/2000/svg" focusable="false">
-        {glyph(id, colors.bg)}
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        {glyph(id)}
       </svg>
     </span>
   );

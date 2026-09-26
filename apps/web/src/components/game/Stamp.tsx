@@ -1,5 +1,6 @@
 import type { ResultStamp, Side } from '@larpbox/shared';
 
+/** A result caption in the sticker style: yellow for emphasis, white when muted, red for errors. */
 export function Stamp({ tone, children, size = 20 }: { tone: 'blue' | 'muted' | 'red' | 'yellow'; children: string; size?: number }) {
   return (
     <span className={`stamp stamp-${tone} stamp-in`} style={{ fontSize: size }}>

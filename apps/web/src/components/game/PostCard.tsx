@@ -23,6 +23,7 @@ export function PostCard({
   stamp = null,
   footer = null,
   headingLevel = 3,
+  taped = size === 'host',
 }: {
   side: Side;
   post: PostView;
@@ -32,13 +33,15 @@ export function PostCard({
   stamp?: ReactNode;
   footer?: ReactNode;
   headingLevel?: 2 | 3 | 4;
+  /** One blue tape strip on top; on by default for the big screen. */
+  taped?: boolean;
 }) {
   const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
   const absent = post.status === 'FORFEIT';
   const avatarSize = size === 'host' ? 60 : 44;
   return (
     <article
-      className={`post-card ${absent ? 'post-card-absent' : ''} ${mine ? 'post-card-mine' : ''}`}
+      className={`post-card ${taped ? 'tape' : ''} ${absent ? 'post-card-absent' : ''} ${mine ? 'post-card-mine' : ''}`}
       aria-label={`Post ${side}${author ? ` by ${author.name}` : ''}`}
     >
       <span className="post-side" aria-hidden="true">

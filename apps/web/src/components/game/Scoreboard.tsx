@@ -59,10 +59,12 @@ export function Scoreboard({
         const player = byId.get(row.playerId);
         if (!player) return null;
         const me = row.playerId === selfId;
+        // Phones highlight your own row; the big screen highlights whoever leads.
+        const highlighted = host ? row.rank === 1 : me;
         return (
           <li
             key={row.playerId}
-            className={`score-row ${me ? 'score-row-me' : ''}`}
+            className={`score-row ${highlighted ? 'score-row-me' : ''}`}
             style={{ fontSize: host ? 'var(--host-name)' : '17px' }}
             data-testid="score-row"
           >
@@ -73,12 +75,12 @@ export function Scoreboard({
             </span>
             <Avatar id={player.avatarId} size={host ? 52 : 36} decorative />
             <span className="min-w-0">
-              <span className={`block truncate font-display font-bold ${host ? '' : 'text-[17px]'}`}>
+              <span className={`block truncate font-bold ${host ? '' : 'text-[17px]'}`}>
                 {player.name}
                 {me ? <span className="sr-only"> (you)</span> : null}
               </span>
               {showGain && row.roundGain !== 0 ? (
-                <span className="block font-mono text-[0.6em] muted">{signedClout(row.roundGain)} this round</span>
+                <span className="block text-[0.62em] font-semibold muted">{signedClout(row.roundGain)} this round</span>
               ) : null}
             </span>
             <span className="score-total" style={{ fontSize: host ? 'var(--host-score)' : '20px' }}>

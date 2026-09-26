@@ -1,5 +1,6 @@
 import type { HostView } from '@larpbox/shared';
 import { Scoreboard } from '../game/Scoreboard';
+import { Sticker } from '../game/Sticker';
 import { ScreenHeading } from '../ui/ScreenHeading';
 import { HostTopBar } from './HostShell';
 
@@ -17,9 +18,16 @@ export function HostScoreboard({ view }: { view: HostView }) {
         }
       />
       <main className="host-main mx-auto w-full max-w-[1200px]">
-        <ScreenHeading className="host-heading">Your network is growing.</ScreenHeading>
+        <div className="grid gap-1">
+          <ScreenHeading className="host-heading">
+            Your network is <span className="accent">growing.</span>
+          </ScreenHeading>
+          <p className="host-annotation">Promoted to thought leader.</p>
+        </div>
         <Scoreboard rows={screen.rows} players={view.players} size="host" />
-        <p className="pill-yellow self-start text-[var(--host-label)]">Next: double Clout.</p>
+        <div>
+          <Sticker className="text-[var(--host-label)]">Next: double Clout.</Sticker>
+        </div>
       </main>
     </div>
   );

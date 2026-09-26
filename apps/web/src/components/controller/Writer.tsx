@@ -74,9 +74,9 @@ function Composer({
   if (locked) {
     return (
       <div className="grid gap-4 enter">
-        <div>
-          <p className="eyebrow mb-2">What actually happened</p>
-          <p className="truth-box">{assignment.truth}</p>
+        <div className="truth-box grid gap-2">
+          <p className="eyebrow muted">What actually happened</p>
+          <p>{assignment.truth}</p>
         </div>
         <article className="mini-post" aria-label="Your locked post" data-testid="locked-post">
           {assignment.finalText}
@@ -114,13 +114,11 @@ function Composer({
 
   return (
     <div className="grid gap-4">
-      <div>
-        <p className="eyebrow mb-2" id={`${baseId}-truth-label`}>
+      <div className="truth-box grid gap-2">
+        <p className="eyebrow muted" id={`${baseId}-truth-label`}>
           What actually happened
         </p>
-        <p className="truth-box" data-testid="assignment-truth">
-          {assignment.truth}
-        </p>
+        <p data-testid="assignment-truth">{assignment.truth}</p>
       </div>
       <details
         className="details-panel"
@@ -135,10 +133,9 @@ function Composer({
         </div>
       </details>
       <div className="grid gap-2">
-        <label htmlFor={`${baseId}-post`} className="font-display text-[21px] font-bold leading-tight">
-          Make this sound like a career milestone.
+        <label htmlFor={`${baseId}-post`} className="text-[17px] font-bold leading-tight">
+          Your career-defining announcement
         </label>
-        <p className="phone-support">Exaggerate the language, not the facts.</p>
         <textarea
           ref={textareaRef}
           id={`${baseId}-post`}
@@ -202,6 +199,7 @@ function Composer({
           Lock post
         </Button>
         {disabledReason && !draft.locking ? <p className="phone-support text-center">{disabledReason}</p> : null}
+        <p className="phone-annotation text-center accent">Exaggerate the words. Keep the facts.</p>
       </div>
     </div>
   );
@@ -210,7 +208,9 @@ function Composer({
 function AllLocked({ assignments }: { assignments: AssignmentView[] }) {
   return (
     <div className="grid gap-4 enter" data-testid="writing-done">
-      <ScreenHeading className="phone-heading">Your personal brand is ready.</ScreenHeading>
+      <ScreenHeading className="phone-heading">
+        Your personal brand <span className="accent">is ready.</span>
+      </ScreenHeading>
       <p className="text-[18px] font-semibold">Look at the big screen.</p>
       {assignments.map((assignment, index) => (
         <div key={assignment.id} className="grid gap-1">
@@ -227,14 +227,16 @@ function SittingOut({ view }: { view: PlayerView }) {
   return (
     <div className="grid gap-4 enter" data-testid="sitting-out">
       <div className="phone-sticky-bar">
-        <ScreenHeading className="font-display text-[22px] leading-none">Round {view.roundNumber}</ScreenHeading>
+        <span className="phone-meta">Round {view.roundNumber} · Judging</span>
         <Timer phase={view.phase} variant="phone" urgentBelow={15} />
       </div>
       <div className="grid justify-items-center gap-3 py-6 text-center">
         <span className="icon-tile" aria-hidden="true">
           <Gavel size={26} />
         </span>
-        <p className="phone-heading">You're judging this round.</p>
+        <ScreenHeading className="phone-heading">
+          You're judging <span className="accent">this round.</span>
+        </ScreenHeading>
         <p className="text-[18px]">
           Everyone else is paired up, so you have no post this time. You'll guess and endorse in every post-off.
         </p>
@@ -283,8 +285,22 @@ export function ControllerWriter({
   return (
     <div className="grid gap-4">
       <div className="phone-sticky-bar">
-        <ScreenHeading className="font-display text-[22px] leading-none">Round {view.roundNumber}</ScreenHeading>
+        <span className="phone-meta">
+          Round {view.roundNumber} · {assignments.length === 1 ? 'Your post' : `Post ${index + 1} of ${assignments.length}`}
+        </span>
         <Timer phase={view.phase} variant="phone" urgentBelow={15} pending={assignments.some((assignment) => assignment.status === 'DRAFT')} />
+      </div>
+      <div className="grid gap-3">
+        <ScreenHeading className="phone-heading">
+          Make it <span className="accent">sound insane.</span>
+        </ScreenHeading>
+        <div
+          className="progress"
+          role="img"
+          aria-label={`${assignments.filter((assignment) => assignment.status === 'LOCKED').length} of ${assignments.length} posts locked`}
+        >
+          <span style={{ width: `${(100 * assignments.filter((assignment) => assignment.status === 'LOCKED').length) / assignments.length}%` }} />
+        </div>
       </div>
       {warn ? (
         <StatusBanner tone="yellow" icon="warning" role="alert">

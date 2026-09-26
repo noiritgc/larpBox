@@ -1,16 +1,18 @@
 import type { RoomClosedPayload } from '@larpbox/shared';
 import { MonitorX, RefreshCw, TabletSmartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Wordmark } from '../game/Wordmark';
+import { BrandLogo } from '../brand/BrandLogo';
 import { Button } from '../ui/Button';
 import { ScreenHeading } from '../ui/ScreenHeading';
 
 export function CenteredPage({ children, testId }: { children: React.ReactNode; testId?: string }) {
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-[560px] flex-col gap-8 px-4 py-6" data-testid={testId}>
-      <Wordmark />
-      <div className="card grid gap-5 p-6">{children}</div>
-    </main>
+    <div className="page-frame">
+      <main className="page-inner mx-auto flex max-w-[600px] flex-col gap-8" data-testid={testId}>
+        <BrandLogo />
+        <div className="card tape panel grid gap-5">{children}</div>
+      </main>
+    </div>
   );
 }
 
@@ -21,7 +23,7 @@ export function EndedScreen({ payload }: { payload: RoomClosedPayload }) {
   return (
     <CenteredPage testId="room-ended">
       <MonitorX size={40} aria-hidden="true" />
-      <ScreenHeading className="text-[30px] leading-tight">
+      <ScreenHeading className="display text-[36px]">
         {removed ? "You've been removed from this room." : left ? 'You left the room.' : 'This room has ended.'}
       </ScreenHeading>
       <p className="text-[18px]">
@@ -46,7 +48,7 @@ export function NotInRoomScreen({ code, role }: { code: string; role: 'host' | '
   return (
     <CenteredPage testId="not-in-room">
       <TabletSmartphone size={40} aria-hidden="true" />
-      <ScreenHeading className="text-[30px] leading-tight">
+      <ScreenHeading className="display text-[36px]">
         {role === 'host' ? "This browser doesn't host this room." : "This browser isn't part of this room."}
       </ScreenHeading>
       <p className="text-[18px]">
@@ -69,7 +71,7 @@ export function NotInRoomScreen({ code, role }: { code: string; role: 'host' | '
 export function OutdatedScreen() {
   return (
     <CenteredPage testId="outdated">
-      <ScreenHeading className="text-[30px] leading-tight">This page is out of date.</ScreenHeading>
+      <ScreenHeading className="display text-[36px]">This page is out of date.</ScreenHeading>
       <p className="text-[18px]">The game server was updated. Reload to continue.</p>
       <Button variant="primary" icon={<RefreshCw size={20} aria-hidden="true" />} onClick={() => window.location.reload()}>
         Reload
@@ -90,8 +92,8 @@ export function SessionConflictOverlay({
 }) {
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="session-conflict-title" data-testid="session-conflict">
-      <div className="card grid w-full max-w-[440px] gap-4 p-6">
-        <h2 id="session-conflict-title" className="text-[26px] leading-tight">
+      <div className="card tape panel grid w-full max-w-[440px] gap-4">
+        <h2 id="session-conflict-title" className="display text-[30px]">
           {role === 'host' ? 'This big screen is open in another tab.' : 'This player is active in another tab.'}
         </h2>
         <p>

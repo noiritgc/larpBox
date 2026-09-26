@@ -127,7 +127,7 @@ export default function HostRoom() {
             </StatusBanner>
           </div>
         ) : null}
-        {screen}
+        <div className="host-stage">{screen}</div>
         {view ? <PauseOverlay view={view} /> : null}
         {status === 'in-use' || status === 'replaced' ? (
           <SessionConflictOverlay role="host" replaced={status === 'replaced'} onTakeOver={() => connection?.takeOver()} />

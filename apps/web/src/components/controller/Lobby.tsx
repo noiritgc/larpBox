@@ -48,7 +48,7 @@ export function ControllerLobby({ view, onLeft }: { view: PlayerView; onLeft: ()
       <div className="flex flex-col items-center gap-3 pt-2 text-center">
         <Avatar id={me.avatarId} size={112} />
         <ScreenHeading className="phone-heading">You're in, {me.name}.</ScreenHeading>
-        <p className="font-mono text-[15px] muted">{me.headline}</p>
+        <p className="hand text-[19px] muted">{me.headline}</p>
       </div>
       {screen.settingsChanged && !me.ready ? (
         <StatusBanner tone="yellow" icon="info">
@@ -77,7 +77,7 @@ export function ControllerLobby({ view, onLeft }: { view: PlayerView; onLeft: ()
         </h2>
         <ul className="grid gap-2">
           {view.players.map((player) => (
-            <li key={player.id} className="flex items-center gap-3 rounded-[12px] border-2 border-ink bg-surface px-3 py-2">
+            <li key={player.id} className="flex items-center gap-3 border-b border-line px-1 py-2">
               <Avatar id={player.avatarId} size={36} decorative />
               <span className="min-w-0 flex-1 truncate font-semibold">
                 {player.name}
@@ -89,7 +89,7 @@ export function ControllerLobby({ view, onLeft }: { view: PlayerView; onLeft: ()
                   {player.joining ? 'Joining…' : 'Offline'}
                 </span>
               ) : player.ready ? (
-                <span className="inline-flex items-center gap-1 text-[14px] font-semibold text-green">
+                <span className="inline-flex items-center gap-1 text-[14px] font-semibold text-blue">
                   <Check size={16} aria-hidden="true" /> Ready
                 </span>
               ) : (

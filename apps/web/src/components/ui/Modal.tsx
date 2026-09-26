@@ -49,7 +49,7 @@ export function Modal({
     <dialog ref={ref} className="modal" aria-labelledby={titleId}>
       {open ? (
         <div className="modal-body">
-          <h2 id={titleId} className="text-2xl leading-tight">
+          <h2 id={titleId} className="display text-[28px]">
             {title}
           </h2>
           {children}

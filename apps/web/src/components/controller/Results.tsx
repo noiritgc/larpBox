@@ -4,6 +4,8 @@ import { Avatar } from '../game/Avatar';
 import { CountUp } from '../game/CountUp';
 import { Scoreboard } from '../game/Scoreboard';
 import { sideStamp } from '../game/Stamp';
+import { Sticker } from '../game/Sticker';
+import { TruthBanner } from '../game/TruthBanner';
 import { ScreenHeading } from '../ui/ScreenHeading';
 import { StatusBanner } from '../ui/StatusBanner';
 import { Timer } from '../ui/Timer';
@@ -31,7 +33,7 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
   return (
     <div className="grid gap-4 enter" data-testid="duel-result">
       <div className="phone-sticky-bar">
-        <span className="min-w-0 flex-1 font-mono text-[14px] font-medium leading-tight">
+        <span className="phone-meta min-w-0 flex-1">
           Round {view.roundNumber} · Post-off {view.duelNumber} of {view.duelsInRound}
         </span>
         <Timer phase={view.phase} variant="phone" />
@@ -66,10 +68,7 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
           Your saved draft was submitted.
         </StatusBanner>
       ) : null}
-      <p className="truth-box text-[18px]">
-        <span className="eyebrow block">What actually happened</span>
-        {result.truth}
-      </p>
+      <TruthBanner truth={result.truth} />
       <ul className="grid gap-2" aria-label="Authors and endorsements">
         {(['A', 'B'] as Side[]).map((side) => {
           const outcome = result.sides[side];
@@ -77,7 +76,9 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
           const stamp = sideStamp(result.stamp, side);
           return (
             <li key={side} className="result-row flex items-center gap-3 rounded-[12px] border-2 border-ink bg-surface p-3">
-              <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] border-2 border-ink bg-yellow font-display font-bold">{side}</span>
+              <span className="grid h-9 w-9 flex-none place-items-center rounded-[8px] border-2 border-ink bg-blue font-display text-[20px] text-white">
+                {side}
+              </span>
               {author ? <Avatar id={author.avatarId} size={36} decorative /> : null}
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold">
@@ -87,7 +88,11 @@ export function ControllerDuelResult({ view }: { view: PlayerView }) {
                 <span className="block text-[14px] muted">
                   {outcome.forfeit ? 'Nothing submitted' : `${plural(outcome.votes, 'endorsement')} · ${signedClout(outcome.points)}`}
                 </span>
-                {stamp ? <span className="stamp stamp-blue mt-1 text-[12px]">{stamp.label}</span> : null}
+                {stamp ? (
+                  <span className="mt-2 block">
+                    <Sticker compact>{stamp.label}</Sticker>
+                  </span>
+                ) : null}
               </span>
             </li>
           );
@@ -115,7 +120,7 @@ export function ControllerScoreboard({ view }: { view: PlayerView }) {
       {mine ? (
         <div className="card grid gap-1 p-4 text-center">
           <span className="eyebrow">You're {ordinal(mine.rank)}</span>
-          <span className="font-display text-[40px] font-bold leading-none">{formatClout(mine.total)}</span>
+          <span className="font-display text-[44px] leading-none text-blue">{formatClout(mine.total)}</span>
           <span className="muted">Clout · {signedClout(mine.roundGain)} this round</span>
         </div>
       ) : null}
@@ -146,7 +151,7 @@ export function ControllerFinal({ view }: { view: PlayerView }) {
       {mine ? (
         <div className="card grid gap-1 p-4 text-center">
           <span className="eyebrow">You finished {ordinal(mine.rank)}</span>
-          <span className="font-display text-[44px] font-bold leading-none" data-testid="final-total">
+          <span className="font-display text-[48px] leading-none text-blue" data-testid="final-total">
             {formatClout(mine.total)}
           </span>
           <span className="muted">Clout</span>

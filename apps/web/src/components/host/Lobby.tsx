@@ -1,11 +1,20 @@
-import { estimateGameMinutes, MAX_PLAYERS, MIN_PLAYERS, type HostView, type PublicPlayer, type RoomSettings } from '@larpbox/shared';
+import {
+  estimateGameMinutes,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  POSTS_PER_PLAYER_LABELS,
+  ROUND_COUNT_LABELS,
+  type HostView,
+  type PublicPlayer,
+  type RoomSettings,
+} from '@larpbox/shared';
 import { Check, CircleDashed, Copy, Link2, Play, UserX } from 'lucide-react';
 import { useState } from 'react';
 import { useConnection } from '../../hooks/useRoomConnection';
 import { hostAudio } from '../../lib/audio';
 import { Avatar } from '../game/Avatar';
 import { JoinQR } from '../game/JoinQR';
-import { Wordmark } from '../game/Wordmark';
+import { BrandLogo } from '../brand/BrandLogo';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { ScreenHeading } from '../ui/ScreenHeading';
@@ -126,42 +135,37 @@ export function HostLobby({ view }: { view: HostView }) {
   return (
     <div className="host mx-auto w-full max-w-[1680px]" data-testid="host-lobby">
       <header className="host-topbar">
-        <Wordmark />
+        <BrandLogo />
         <div className="host-topbar-center" />
         <SoundToggle />
         <FullscreenButton />
-        <Button
-          small
-          onClick={() => {
-            setDraftSettings(view.settings);
-            setSettingsOpen(true);
-          }}
-        >
-          Settings
-        </Button>
         <HostMenu view={view} />
       </header>
-      <ScreenHeading className="host-heading text-center">Your network is assembling.</ScreenHeading>
-      <div className="grid flex-1 items-start gap-[var(--host-gap)] lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        <section className="grid justify-items-start gap-4" aria-labelledby="join-title">
-          <h2 id="join-title" className="eyebrow text-[clamp(16px,1vw,22px)]">
-            Join on your phone
+      <ScreenHeading className="host-heading">
+        The networking <span className="accent">event starts here.</span>
+      </ScreenHeading>
+      <div className="grid flex-1 items-start gap-[calc(var(--host-gap)*1.5)] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.2fr)]">
+        <section className="card tape grid justify-items-start gap-4 p-[clamp(20px,1.8vw,34px)]" aria-labelledby="join-title">
+          <h2 id="join-title" className="eyebrow">
+            Scan the code, or open this on your phone
           </h2>
-          <p className="font-mono text-[clamp(20px,calc(8px+1vw),30px)] font-medium" data-testid="join-origin">
+          <p className="text-[clamp(20px,calc(8px+1vw),30px)] font-bold" data-testid="join-origin">
             {joinOrigin}
           </p>
-          <JoinQR url={view.joinUrl} size={240} />
-          <div>
-            <p className="eyebrow">Room code</p>
-            <p className="host-room-code" data-testid="room-code">
-              {view.roomCode}
-            </p>
+          <div className="flex flex-wrap items-center gap-[var(--host-gap)]">
+            <JoinQR url={view.joinUrl} size={220} />
+            <div>
+              <p className="eyebrow muted">Room code</p>
+              <p className="host-room-code" data-testid="room-code">
+                {view.roomCode}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button small onClick={copyLink} icon={copyState === 'copied' ? <Check size={20} aria-hidden="true" /> : <Copy size={20} aria-hidden="true" />}>
-              {copyState === 'copied' ? 'Link copied' : 'Copy join link'}
-            </Button>
-          </div>
+          <p className="host-annotation host-decor accent">Zero experience required.</p>
+          <p className="text-[var(--host-label)]">The host plays on a separate phone too.</p>
+          <Button small onClick={copyLink} icon={copyState === 'copied' ? <Check size={20} aria-hidden="true" /> : <Copy size={20} aria-hidden="true" />}>
+            {copyState === 'copied' ? 'Link copied' : 'Copy join link'}
+          </Button>
           {joinLinkIsLocalOnly ? (
             <StatusBanner tone="yellow" icon="warning">
               This link only works on this computer. To let phones join, set PUBLIC_ORIGIN to this computer's network address and restart the server.
@@ -172,14 +176,19 @@ export function HostLobby({ view }: { view: HostView }) {
               <span className="inline-flex items-center gap-2 font-semibold">
                 <Link2 size={18} aria-hidden="true" /> Copy this link:
               </span>
-              <input className="input font-mono" readOnly value={view.joinUrl} onFocus={(event) => event.currentTarget.select()} />
+              <input className="input" readOnly value={view.joinUrl} onFocus={(event) => event.currentTarget.select()} />
             </label>
           ) : null}
         </section>
-        <section className="grid gap-4" aria-labelledby="roster-title">
-          <h2 id="roster-title" className="eyebrow text-[clamp(16px,1vw,22px)]">
-            {players.length} of {MAX_PLAYERS} seats · {screen.readyCount} ready
-          </h2>
+        <section className="grid content-start gap-4" aria-labelledby="roster-title">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="roster-title" className="display text-[clamp(32px,calc(8px+2vw),48px)]">
+              Your network
+            </h2>
+            <span className="badge text-[clamp(13px,calc(6px+0.5vw),16px)]">
+              {players.length} / {MAX_PLAYERS} players · {screen.readyCount} ready
+            </span>
+          </div>
           {screen.settingsChanged ? (
             <StatusBanner tone="yellow" icon="info">
               Settings changed. Everyone needs to ready up again.
@@ -191,35 +200,43 @@ export function HostLobby({ view }: { view: HostView }) {
             ))}
             {Array.from({ length: openSeats }, (_, index) => (
               <li key={`open-${index}`} className="host-roster-row host-roster-row-empty" aria-label="Open seat">
-                <span className="grid h-[52px] w-[52px] place-items-center rounded-[14px] border-2 border-dashed border-line" aria-hidden="true" />
+                <span className="grid h-[52px] w-[52px] place-items-center rounded-[12px] border-2 border-dashed border-line" aria-hidden="true" />
                 <span className="font-semibold">Open seat</span>
               </li>
             ))}
           </ul>
-        </section>
-      </div>
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t-2 border-ink pt-4">
-        <p className="host-subheading">
-          {MIN_PLAYERS}–{MAX_PLAYERS} players • Everyone joins on a phone, including the host. About {minutes} minutes.
-        </p>
-        <div className="flex flex-wrap items-center gap-4">
+          <p className="host-annotation host-decor">Everyone in? Let the humblebragging begin.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Button
+              variant="primary"
+              disabled={!screen.canStart}
+              loading={busy === 'start'}
+              loadingLabel="Starting…"
+              onClick={start}
+              icon={<Play size={24} aria-hidden="true" />}
+              className="min-w-[220px] text-[22px]"
+              data-testid="start-game"
+            >
+              Start game
+            </Button>
+            <Button
+              onClick={() => {
+                setDraftSettings(view.settings);
+                setSettingsOpen(true);
+              }}
+            >
+              Room settings
+            </Button>
+          </div>
           <p className="font-semibold" data-testid="start-reason" aria-live="polite">
             {screen.startBlocker ? screen.startBlocker.message : `${screen.readyCount} of ${players.length} ready`}
           </p>
-          <Button
-            variant="primary"
-            disabled={!screen.canStart}
-            loading={busy === 'start'}
-            loadingLabel="Starting…"
-            onClick={start}
-            icon={<Play size={24} aria-hidden="true" />}
-            className="min-w-[220px] text-[22px]"
-            data-testid="start-game"
-          >
-            Start game
-          </Button>
-        </div>
-      </footer>
+          <p className="host-subheading">
+            {ROUND_COUNT_LABELS[view.settings.roundCount]} · {POSTS_PER_PLAYER_LABELS[view.settings.postsPerPlayer].toLowerCase()} ·{' '}
+            {view.settings.secondsPerPost}s per post · about {minutes} minutes. Everyone joins on a phone, including the host.
+          </p>
+        </section>
+      </div>
       {error ? (
         <p className="field-error" role="alert">
           {error}

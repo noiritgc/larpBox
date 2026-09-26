@@ -8,21 +8,24 @@ export function ControllerRules({ view }: { view: PlayerView }) {
   return (
     <div className="grid gap-4 enter">
       <div className="flex items-center justify-between gap-3">
-        <ScreenHeading className="phone-heading">How this works</ScreenHeading>
+        <ScreenHeading className="phone-heading">
+          How this <span className="accent">works.</span>
+        </ScreenHeading>
         <Timer phase={view.phase} variant="phone" />
       </div>
       <ol className="grid gap-3">
         {TUTORIAL_STEPS.map((step, index) => (
-          <li key={step.title} className="card grid gap-1 p-4">
-            <span className="font-display text-[22px] font-bold">
-              {index + 1}. {step.title}
+          <li key={step.title} className="card grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 p-4">
+            <span className="step-number row-span-2" aria-hidden="true">
+              {index + 1}
             </span>
+            <span className="display accent text-[24px]">{step.title}</span>
             <span className="text-[16px]">{step.body}</span>
           </li>
         ))}
       </ol>
       <p className="banner banner-blue">Writers sit out guessing and voting on their own posts.</p>
-      <p className="text-center font-display text-[20px] font-bold">{TUTORIAL_RULE}</p>
+      <p className="phone-annotation text-center accent">{TUTORIAL_RULE}</p>
       <p className="flex items-center justify-center gap-2 text-center font-semibold">
         <MonitorPlay size={22} aria-hidden="true" /> Look at the big screen
       </p>

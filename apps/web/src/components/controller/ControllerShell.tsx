@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { ConnectionStatus } from '../../lib/socket';
 import { persistentStorageAvailable } from '../../lib/storage';
 import { RoomCodeChip } from '../game/RoomCode';
-import { Wordmark } from '../game/Wordmark';
+import { BrandLogo } from '../brand/BrandLogo';
 import { StatusBanner } from '../ui/StatusBanner';
 
 function statusLabel(status: ConnectionStatus): { text: string; tone: 'on' | 'off' | 'idle' } {
@@ -36,7 +36,7 @@ export function ControllerShell({
   return (
     <div className="phone" data-testid="controller">
       <header className="phone-header">
-        <Wordmark />
+        <BrandLogo size="compact" />
         <RoomCodeChip code={code} />
         <span className="ml-auto inline-flex items-center gap-2 text-[14px] font-semibold" data-testid="network-status">
           <span className={`status-dot status-dot-${label.tone}`} aria-hidden="true" />

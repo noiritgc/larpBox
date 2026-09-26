@@ -38,12 +38,14 @@ export function HostWriting({ view }: { view: HostView }) {
       <main className="host-main">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="grid gap-2">
-            <ScreenHeading className="host-heading">Building personal brands…</ScreenHeading>
+            <ScreenHeading className="host-heading">
+              Make it <span className="accent">sound insane.</span>
+            </ScreenHeading>
             <p className="host-subheading">
               {view.settings.postsPerPlayer === 1 ? 'One post each.' : 'Two posts each.'} Keep the facts. Inflate everything else.
             </p>
           </div>
-          <p className="font-display text-[clamp(28px,calc(6px+1.6vw),44px)] font-bold" data-testid="locked-total">
+          <p className="display text-[clamp(28px,calc(6px+1.6vw),44px)]" data-testid="locked-total">
             {screen.lockedTotal} of {screen.assignmentTotal} posts locked
           </p>
         </div>
@@ -55,12 +57,12 @@ export function HostWriting({ view }: { view: HostView }) {
             const done = !sittingOut && entry.locked === entry.total;
             const Icon = sittingOut ? Gavel : done ? CircleCheck : entry.locked > 0 ? CircleDot : CircleDashed;
             return (
-              <li key={entry.playerId} className="host-writer-tile" data-testid="writer-tile">
+              <li key={entry.playerId} className={`host-writer-tile ${done ? 'host-writer-tile-done' : ''}`} data-testid="writer-tile">
                 <Avatar id={player.avatarId} size={52} decorative />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[var(--host-name)] font-bold leading-tight">{player.name}</p>
-                  <p className="inline-flex items-center gap-2 font-mono text-[clamp(16px,calc(6px+0.8vw),22px)]">
-                    <Icon size={22} aria-hidden="true" className={done ? 'text-green' : 'muted'} />
+                  <p className="truncate text-[var(--host-name)] font-bold leading-tight">{player.name}</p>
+                  <p className="inline-flex items-center gap-2 text-[clamp(16px,calc(6px+0.8vw),22px)] font-semibold">
+                    <Icon size={22} aria-hidden="true" className={done ? 'text-blue' : 'muted'} />
                     {sittingOut ? 'Judging this round' : `${entry.locked}/${entry.total} locked`}
                   </p>
                 </div>

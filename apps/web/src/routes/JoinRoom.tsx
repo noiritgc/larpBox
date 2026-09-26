@@ -14,7 +14,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Avatar } from '../components/game/Avatar';
 import { RoomCodeChip } from '../components/game/RoomCode';
-import { Wordmark } from '../components/game/Wordmark';
+import { BrandLogo } from '../components/brand/BrandLogo';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { StatusBanner } from '../components/ui/StatusBanner';
@@ -69,27 +69,34 @@ function CodeStep() {
   };
 
   return (
-    <form className="grid gap-5" onSubmit={submit} noValidate>
-      <h1 className="font-display text-[36px] leading-[1.05]">Join your network.</h1>
-      <Input
-        label="Room code"
-        value={code}
-        onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Za-z]/g, '').slice(0, 4))}
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="characters"
-        spellCheck={false}
-        inputMode="text"
-        maxLength={4}
-        placeholder="ABCD"
-        className="font-mono text-[28px] tracking-[0.3em] uppercase"
-        error={error}
-        data-testid="room-code-input"
-        aria-describedby={undefined}
-      />
-      <Button type="submit" variant="primary" block loading={checking} loadingLabel="Checking…" icon={<ArrowRight size={20} aria-hidden="true" />} data-testid="continue">
-        Continue
-      </Button>
+    <form className="grid gap-6" onSubmit={submit} noValidate>
+      <div className="grid gap-3">
+        <h1 className="display display-page">
+          Join your <span className="accent accent-underline">network.</span>
+        </h1>
+        <p className="tagline">Your next big opportunity is a party game.</p>
+      </div>
+      <div className="card tape panel mt-3 grid gap-3">
+        <Input
+          label="Room code"
+          value={code}
+          onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Za-z]/g, '').slice(0, 4))}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          inputMode="text"
+          maxLength={4}
+          placeholder="ABCD"
+          className="min-h-[64px] text-[30px] font-semibold tracking-[0.35em] uppercase"
+          hint="Find the four-letter code on the big screen."
+          error={error}
+          data-testid="room-code-input"
+        />
+        <Button type="submit" variant="primary" block loading={checking} loadingLabel="Checking…" data-testid="continue">
+          Continue <ArrowRight size={20} aria-hidden="true" />
+        </Button>
+      </div>
     </form>
   );
 }
@@ -188,8 +195,10 @@ function NameStep({ code }: { code: string }) {
   if (saved && !joinAsNew) {
     return (
       <div className="grid gap-5">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-[32px] leading-[1.05]">Welcome back.</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="display display-page">
+            Welcome <span className="accent">back.</span>
+          </h1>
           <RoomCodeChip code={code} />
         </div>
         <p className="text-[18px]">This phone already has a seat in this room.</p>
@@ -206,7 +215,9 @@ function NameStep({ code }: { code: string }) {
   return (
     <form className="grid gap-5" onSubmit={submit} noValidate>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-display text-[32px] leading-[1.05]">Join your network.</h1>
+        <h1 className="display display-page">
+          Join your <span className="accent accent-underline">network.</span>
+        </h1>
         <RoomCodeChip code={code} />
       </div>
       {previewError ? (
@@ -224,51 +235,53 @@ function NameStep({ code }: { code: string }) {
           {preview.playerCount} of {preview.maxPlayers} seats taken.
         </p>
       ) : null}
-      <Input
-        ref={nameRef}
-        label="What should we call you?"
-        value={name}
-        onChange={(event) => {
-          setName(event.target.value);
-          setNameServerError(null);
-        }}
-        onBlur={() => setTouched(name.length > 0)}
-        autoComplete="nickname"
-        autoCapitalize="words"
-        enterKeyHint="go"
-        placeholder="Your name"
-        hint={`2–${NAME_MAX_GRAPHEMES} characters. Emoji welcome.`}
-        error={nameError ?? nameServerError}
-        data-testid="name-input"
-      />
-      <fieldset className="grid gap-3">
-        <legend className="field-label">Pick an avatar</legend>
-        <div className="avatar-grid" role="radiogroup" aria-label="Avatar">
-          {AVATAR_IDS.map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={avatarId === id}
-              aria-label={AVATAR_LABELS[id]}
-              className="avatar-option"
-              onClick={() => setAvatarId(id)}
-              data-testid={`avatar-${id}`}
-            >
-              <Avatar id={id} size={44} decorative />
-              <span>{TILE_LABELS[id] ?? AVATAR_LABELS[id]}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {formError ? (
-        <StatusBanner tone="red" icon="warning" role="alert">
-          {formError}
-        </StatusBanner>
-      ) : null}
-      <Button type="submit" variant="primary" block loading={joining} loadingLabel="Joining…" disabled={blocked !== null} data-testid="join-room">
-        Join room
-      </Button>
+      <div className="card tape panel mt-3 grid gap-5">
+        <Input
+          ref={nameRef}
+          label="What should we call you?"
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            setNameServerError(null);
+          }}
+          onBlur={() => setTouched(name.length > 0)}
+          autoComplete="nickname"
+          autoCapitalize="words"
+          enterKeyHint="go"
+          placeholder="Your name"
+          hint={`2–${NAME_MAX_GRAPHEMES} characters. Emoji welcome.`}
+          error={nameError ?? nameServerError}
+          data-testid="name-input"
+        />
+        <fieldset className="grid gap-3">
+          <legend className="field-label">Pick an avatar</legend>
+          <div className="avatar-grid" role="radiogroup" aria-label="Avatar">
+            {AVATAR_IDS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={avatarId === id}
+                aria-label={AVATAR_LABELS[id]}
+                className="avatar-option"
+                onClick={() => setAvatarId(id)}
+                data-testid={`avatar-${id}`}
+              >
+                <Avatar id={id} size={44} decorative />
+                <span>{TILE_LABELS[id] ?? AVATAR_LABELS[id]}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        {formError ? (
+          <StatusBanner tone="red" icon="warning" role="alert">
+            {formError}
+          </StatusBanner>
+        ) : null}
+        <Button type="submit" variant="primary" block loading={joining} loadingLabel="Joining…" disabled={blocked !== null} data-testid="join-room">
+          Join room <ArrowRight size={20} aria-hidden="true" />
+        </Button>
+      </div>
       {saved ? (
         <Button variant="ghost" onClick={() => setJoinAsNew(false)}>
           Rejoin as {saved.name} instead
@@ -282,14 +295,17 @@ export default function JoinRoom() {
   const params = useParams();
   const code = params.code ? normalizeRoomCode(params.code) : null;
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[480px] flex-col gap-6 px-4 pb-10 pt-5">
-      <header className="flex items-center justify-between">
-        <Wordmark />
-        <Link to="/help" className="font-semibold">
-          Help
-        </Link>
-      </header>
-      <main className="card p-5">{code && isRoomCode(code) ? <NameStep key={code} code={code} /> : <CodeStep />}</main>
+    <div className="page-frame">
+      <div className="page-inner mx-auto flex max-w-[520px] flex-col gap-6">
+        <header className="page-header mb-0">
+          <BrandLogo />
+          <Link to="/help" className="page-link">
+            Help
+          </Link>
+        </header>
+        <main>{code && isRoomCode(code) ? <NameStep key={code} code={code} /> : <CodeStep />}</main>
+        <p className="text-center text-[14px] muted">No résumé. No account. No qualifications.</p>
+      </div>
     </div>
   );
 }

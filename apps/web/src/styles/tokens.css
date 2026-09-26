@@ -1,26 +1,40 @@
-/* Design tokens from the Larpbox TV spec (section 3.3). Components read these, never raw hex. */
+/*
+ * Design tokens: the LARPbox TV sketchbook theme (frontend redesign handoff, section 4). White paper,
+ * ink outlines, one electric blue; yellow only for emphasis stickers. Components read these, never
+ * raw hex.
+ */
 :root {
-  --paper: #f6f3eb;
+  --paper: #ffffff;
   --surface: #ffffff;
-  --ink: #171717;
-  --muted: #595b62;
-  --line: #c8c5bd;
-  --blue: #1747e7;
-  --blue-hover: #1036b7;
+  --ink: #242424;
+  --muted: #5b5b64;
+  --line: #b8bfd2;
+  --blue: #2351ff;
+  --blue-hover: #1a3fd6;
+  --blue-bg: #edf1ff;
   --yellow: #e9ff70;
   --green: #166534;
   --red: #b42318;
   --red-bg: #fee4e2;
-  --blue-bg: #eaf0ff;
   --amber: #8a5a00;
   --amber-bg: #fff4d6;
+  --disabled-bg: #f0f0f2;
+  --disabled-text: #6a6a72;
+
+  /* Rounded original-style surfaces with one clean outline and a hard shadow. */
   --radius-sm: 8px;
   --radius-md: 16px;
-  --radius-lg: 24px;
-  --shadow-card: 5px 5px 0 var(--ink);
+  --radius-lg: 18px;
+  --radius-button: 11px;
+  --radius-field: 12px;
+  --radius-sticker: 6px;
+  --shadow-card: 4px 5px 0 var(--ink);
+  --shadow-hero: 5px 6px 0 var(--ink);
   --shadow-button: 3px 3px 0 var(--ink);
-  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+
+  --font-display: 'Lilita One', 'Arial Black', system-ui, sans-serif;
+  --font-hand: 'Kalam', 'Comic Sans MS', cursive;
+  --font-post: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }

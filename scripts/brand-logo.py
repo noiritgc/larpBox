@@ -1,9 +1,11 @@
-"""Cut the Larpbox TV logo out of its white background and export web assets.
+"""Cut the Larpbox TV logo out of its white background (a step toward the favicons).
+
+The app shows the original PNG unchanged (apps/web/src/assets/brand/larpbox-logo.png) on its white
+pages; this cut-out only feeds scripts/brand-favicon.py, whose icons need a transparent TV box.
 
 Usage (Python 3 with Pillow and NumPy):
-  python3 scripts/brand-logo.py apps/web/brand/larpbox-tv-logo-source.png <out_dir> <preview_dir>
-Copy <out_dir>/larpbox-logo-{480,1040}.webp to apps/web/src/assets/brand/, then run
-scripts/brand-favicon.py on <out_dir>/larpbox-logo-full.png for the icons.
+  python3 scripts/brand-logo.py apps/web/src/assets/brand/larpbox-logo.png <out_dir> <preview_dir>
+then run scripts/brand-favicon.py on <out_dir>/larpbox-logo-full.png.
 The background is pure white (255,255,255); the logo's fill is cream (~252,250,245), so large
 pure-white regions are background even when enclosed, and small white specks inside the fill stay.
 """

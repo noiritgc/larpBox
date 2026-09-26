@@ -1,4 +1,5 @@
 import type { HostView } from '@larpbox/shared';
+import { Sticker } from '../game/Sticker';
 import { ScreenHeading } from '../ui/ScreenHeading';
 import { HostTopBar } from './HostShell';
 
@@ -20,9 +21,7 @@ export function HostRoundIntro({ view }: { view: HostView }) {
           Round {screen.roundNumber}: {screen.title}.
         </ScreenHeading>
         {screen.multiplier === 2 ? (
-          <span className="pill-yellow stamp-in text-[clamp(22px,calc(6px+1.25vw),34px)]" style={{ transform: 'rotate(-3deg)' }}>
-            DOUBLE CLOUT
-          </span>
+          <Sticker className="stamp-in text-[clamp(22px,calc(6px+1.25vw),34px)]">Double Clout</Sticker>
         ) : null}
         <p className="host-subheading">
           {view.settings.postsPerPlayer === 1 ? 'One post each. One timer.' : 'Two posts each. One timer.'}

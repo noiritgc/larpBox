@@ -27,7 +27,9 @@ function ReadScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_REA
     <div className="host host-fixed" data-testid="host-duel-read">
       <HostTopBar view={view} center={<DuelContext view={view} />} />
       <main className="host-main">
-        <ScreenHeading className="host-heading">Two announcements. One very ordinary event.</ScreenHeading>
+        <ScreenHeading className="host-heading">
+          Two announcements. <span className="accent">One very ordinary event.</span>
+        </ScreenHeading>
         <ScrollArea>
           <AnonymousPosts posts={screen.posts} />
         </ScrollArea>
@@ -43,13 +45,16 @@ function GuessScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_GU
       <main className="host-main">
         <ScrollArea>
           <div className="grid gap-[var(--host-gap)]">
-            <AnonymousPosts posts={screen.posts} />
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <ScreenHeading className="host-heading">What actually happened?</ScreenHeading>
-              <p className="font-display text-[clamp(24px,calc(6px+1.25vw),36px)] font-bold" data-testid="guess-count">
+              <ScreenHeading className="host-heading">
+                Guess <span className="accent">the LARP.</span>
+              </ScreenHeading>
+              <p className="badge text-[clamp(14px,calc(6px+0.6vw),18px)]" data-testid="guess-count">
                 {screen.lockedCount} of {plural(screen.eligibleCount, 'guess', 'guesses')} locked
               </p>
             </div>
+            <AnonymousPosts posts={screen.posts} />
+            <p className="eyebrow">What actually happened? Guess on your phone.</p>
             <ol className="host-options" aria-label="Possible events">
               {screen.options.map((option, index) => (
                 <li key={option.id} className="host-option">
@@ -74,20 +79,21 @@ function EndorseScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_
       <main className="host-main">
         <ScrollArea>
           <div className="grid gap-[var(--host-gap)]">
+            <ScreenHeading className="host-heading">
+              Who <span className="accent">LARPed harder?</span>
+            </ScreenHeading>
             <div className="host-endorse-top">
               <TruthBanner truth={screen.truth} size="host" />
               <FactsList facts={screen.facts} boundaries={screen.boundaries} className="host-facts sm:grid-cols-2" />
             </div>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="grid gap-1">
-                <ScreenHeading className="host-heading">Who made the most out of the least?</ScreenHeading>
-                <p className="host-subheading">Endorse the funniest post that stayed true.</p>
-              </div>
-              <p className="font-display text-[clamp(24px,calc(6px+1.25vw),36px)] font-bold" data-testid="endorse-count">
+            <AnonymousPosts posts={screen.posts} />
+            <div className="card host-callout">
+              <p className="display text-[clamp(26px,calc(6px+1.4vw),38px)]">Endorse on your phone.</p>
+              <p className="text-[var(--host-label)]">Choose A, B, or Neither. Keep it technically true.</p>
+              <p className="badge text-[clamp(14px,calc(6px+0.6vw),18px)]" data-testid="endorse-count">
                 {screen.lockedCount} of {plural(screen.eligibleCount, 'endorsement')} locked
               </p>
             </div>
-            <AnonymousPosts posts={screen.posts} />
           </div>
         </ScrollArea>
       </main>
@@ -109,7 +115,9 @@ function ResultScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_R
             <TruthBanner truth={result.truth} size="host" />
             {unfilled ? (
               <div className="grid place-items-center gap-6 py-8 text-center">
-                <ScreenHeading className="host-heading">Both positions remain unfilled.</ScreenHeading>
+                <ScreenHeading className="host-heading">
+                  Both positions remain <span className="accent">unfilled.</span>
+                </ScreenHeading>
                 <Stamp tone="muted" size={40}>
                   Position vacant
                 </Stamp>
@@ -143,7 +151,7 @@ function ResultScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_R
                           author={author ? { name: author.name, avatarId: author.avatarId, headline: author.headline } : null}
                           stamp={stamp ? <Stamp tone={stamp.tone} size={34}>{stamp.label}</Stamp> : null}
                         />
-                        <p className="flex flex-wrap items-baseline gap-x-4 font-display font-bold" data-testid={`result-${side}`}>
+                        <p className="flex flex-wrap items-baseline gap-x-4 font-display" data-testid={`result-${side}`}>
                           <span className="text-[var(--host-score)]">{plural(outcome.votes, 'endorsement')}</span>
                           <span className="text-[var(--host-score)] text-blue">
                             <CountUp value={outcome.points} prefix="+" suffix=" Clout" />
@@ -156,7 +164,7 @@ function ResultScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_R
                 <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[var(--host-label)] font-semibold">
                   <span>{plural(result.votesNeither, 'reader')} chose neither</span>
                   <span className="inline-flex items-center gap-3">
-                    <CircleCheck size={28} aria-hidden="true" className="text-green" />
+                    <CircleCheck size={28} aria-hidden="true" className="text-blue" />
                     {plural(guessers.length, 'reader')} decoded the truth
                     {guessers.length > 0 ? ` (+${formatClout(result.guessPoints)} each)` : ''}
                     <span className="inline-flex gap-2">

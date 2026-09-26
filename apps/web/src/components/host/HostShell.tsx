@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useConnection } from '../../hooks/useRoomConnection';
 import { hostAudio } from '../../lib/audio';
 import type { ConnectionStatus } from '../../lib/socket';
-import { Wordmark } from '../game/Wordmark';
+import { BrandLogo } from '../brand/BrandLogo';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { StatusBanner } from '../ui/StatusBanner';
@@ -243,10 +243,10 @@ export function PauseOverlay({ view }: { view: HostView }) {
   };
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" data-testid="pause-overlay">
-      <div className="card grid w-full max-w-[640px] gap-5 p-8 text-center">
+      <div className="card tape grid w-full max-w-[680px] gap-5 p-8 text-center">
         <p className="eyebrow">Paused · {Math.ceil((view.phase.remainingMs ?? 0) / 1000)} seconds left on the clock</p>
         <h2 id="pause-title" className="host-heading">
-          Meeting on hold
+          Meeting on <span className="accent">hold.</span>
         </h2>
         <p className="text-[22px]">
           {view.phase.pauseReason === 'HOST_DISCONNECTED'
@@ -280,7 +280,7 @@ export function PauseOverlay({ view }: { view: HostView }) {
 export function HostTopBar({ view, center, showTimer = true }: { view: HostView; center?: ReactNode; showTimer?: boolean }) {
   return (
     <header className="host-topbar">
-      <Wordmark />
+      <BrandLogo />
       <div className="host-topbar-center">{center}</div>
       {showTimer ? <Timer phase={view.phase} variant="host" /> : null}
       <SoundToggle />

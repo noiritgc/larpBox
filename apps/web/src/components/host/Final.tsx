@@ -5,7 +5,7 @@ import { useConnection } from '../../hooks/useRoomConnection';
 import { formatClout } from '../../lib/format';
 import { Avatar } from '../game/Avatar';
 import { Scoreboard } from '../game/Scoreboard';
-import { Stamp } from '../game/Stamp';
+import { Sticker } from '../game/Sticker';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { ScreenHeading } from '../ui/ScreenHeading';
@@ -52,9 +52,9 @@ export function HostFinal({ view }: { view: HostView }) {
             <div className="grid content-start gap-[var(--host-gap)]">
               <div className="grid gap-4">
                 <div className="mb-2">
-                  <Stamp tone="yellow" size={28}>
+                  <Sticker className="stamp-in text-[clamp(22px,calc(8px+1vw),30px)]">
                     {joint ? 'Co-CEOs of Doing Nothing' : 'Chief Exaggeration Officer'}
-                  </Stamp>
+                  </Sticker>
                 </div>
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="flex gap-2">
@@ -62,7 +62,7 @@ export function HostFinal({ view }: { view: HostView }) {
                       <Avatar key={player.id} id={player.avatarId} size={72} label={player.name} />
                     ))}
                   </span>
-                  <ScreenHeading className="min-w-0 font-display text-[clamp(44px,calc(4px+4vw),96px)] leading-[0.95]">
+                  <ScreenHeading className="min-w-0 font-display text-[clamp(44px,calc(4px+4vw),96px)] leading-[0.95] text-blue">
                     {winners.map((player) => player.name).join(' & ') || 'Nobody'}
                   </ScreenHeading>
                 </div>
@@ -73,7 +73,7 @@ export function HostFinal({ view }: { view: HostView }) {
               {best ? (
                 <>
                   <p className="eyebrow text-[var(--host-label)]">Highest-Clout Announcement</p>
-                  <article className="post-card">
+                  <article className="post-card tape">
                     <header className="post-head">
                       {bestAuthor ? <Avatar id={bestAuthor.avatarId} size={56} decorative /> : null}
                       <div className="min-w-0">
@@ -82,22 +82,24 @@ export function HostFinal({ view }: { view: HostView }) {
                       </div>
                     </header>
                     <p className="post-body">{best.text}</p>
-                    <p className="font-display text-[var(--host-label)] font-bold text-blue">+{formatClout(best.points)} Clout</p>
+                    <p className="font-display text-[var(--host-score)] text-blue">+{formatClout(best.points)} Clout</p>
                   </article>
-                  <p className="truth-box text-[var(--host-facts)]">
-                    <span className="eyebrow block">What actually happened</span>
-                    {best.truth}
-                  </p>
+                  <div className="grid justify-items-start gap-2">
+                    <p className="eyebrow muted">What actually happened</p>
+                    <Sticker placement="line" className="text-[var(--host-label)]">
+                      {best.truth}
+                    </Sticker>
+                  </div>
                 </>
               ) : (
-                <p className="card p-6 font-display text-[clamp(28px,calc(6px+1.6vw),44px)] font-bold">
+                <p className="card tape display p-6 text-[clamp(28px,calc(6px+1.6vw),44px)]">
                   A room full of professionals. No endorsements.
                 </p>
               )}
             </div>
           </div>
         </ScrollArea>
-        <footer className="flex flex-wrap items-center justify-end gap-3 border-t-2 border-ink pt-[var(--host-gap)]">
+        <footer className="flex flex-wrap items-center justify-end gap-3 border-t border-line pt-[var(--host-gap)]">
           {error ? (
             <p className="field-error mr-auto" role="alert">
               {error}

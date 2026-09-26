@@ -135,7 +135,9 @@ export async function playerBot(player: PlayerHandle, plan: BotPlan = {}, maxMs 
       const composer = page.getByTestId('composer');
       if (await composer.isVisible()) {
         const truth = (await page.getByTestId('assignment-truth').textContent()) ?? '';
-        const round = Number((await page.locator('.phone-sticky-bar h1').textContent())?.replace(/\D/g, '') || '1');
+        // The sticky bar reads "Round 1 · Post 1 of 2" (or "Round 1 · Your post").
+        const meta = (await page.locator('.phone-sticky-bar .phone-meta').first().textContent({ timeout: 2_000 })) ?? '';
+        const round = Number(/Round\s+(\d+)/.exec(meta)?.[1] ?? '1');
         // One post each has no tabs at all.
         const secondTab = page.getByTestId('post-tab-2');
         const tab = (await secondTab.count()) > 0 && (await secondTab.getAttribute('aria-selected', { timeout: 1_000 })) === 'true' ? 2 : 1;
