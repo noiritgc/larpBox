@@ -90,7 +90,7 @@ export default function Landing() {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-4 pb-10 pt-5 md:px-10">
       <header className="flex items-center justify-between gap-4">
-        <Wordmark className="text-[28px] md:text-[34px]" />
+        <Wordmark className="text-[32px] md:text-[44px]" />
         <Link to="/help" className="font-semibold">
           How to play
         </Link>

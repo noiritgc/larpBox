@@ -826,6 +826,10 @@
     border-color: var(--blue);
     background: var(--blue-bg);
   }
+  .landing-option .stamp {
+    flex: none;
+    white-space: nowrap;
+  }
   .landing-scroll-cue {
     align-items: center;
     justify-self: start;

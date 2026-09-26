@@ -94,6 +94,13 @@ function CodeStep() {
   );
 }
 
+/** Soft hyphens let the longest names break cleanly inside the narrow avatar tiles on phones. */
+const TILE_LABELS: Partial<Record<AvatarId, string>> = {
+  spreadsheet: 'Spread\u00ADsheet',
+  megaphone: 'Mega\u00ADphone',
+  sunglasses: 'Sun\u00ADglasses',
+};
+
 function NameStep({ code }: { code: string }) {
   const navigate = useNavigate();
   const saved = playerCredentialFor(code);
@@ -243,12 +250,13 @@ function NameStep({ code }: { code: string }) {
               type="button"
               role="radio"
               aria-checked={avatarId === id}
+              aria-label={AVATAR_LABELS[id]}
               className="avatar-option"
               onClick={() => setAvatarId(id)}
               data-testid={`avatar-${id}`}
             >
               <Avatar id={id} size={44} decorative />
-              <span>{AVATAR_LABELS[id]}</span>
+              <span>{TILE_LABELS[id] ?? AVATAR_LABELS[id]}</span>
             </button>
           ))}
         </div>

@@ -213,10 +213,16 @@
     border: 2px solid var(--ink);
     border-radius: 14px;
     background: var(--surface);
+    min-width: 0;
     font-size: 12px;
     font-weight: 600;
     line-height: 1.15;
     text-align: center;
+  }
+  /* Long labels break at their soft hyphens inside the tile on narrow phones. */
+  .avatar-option > span:last-child {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
   .avatar-option[aria-checked='true'] {
     outline: 3px solid var(--ink);
