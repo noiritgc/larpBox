@@ -1,0 +1,46 @@
+{
+  "name": "larpbox-tv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Larpbox TV: a shared-screen party game about professional exaggeration.",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "apps/server",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "npm run build -w @larpbox/shared && concurrently -k -n shared,server,web -c gray,blue,magenta \"npm run dev -w @larpbox/shared\" \"npm run dev -w @larpbox/server\" \"npm run dev -w @larpbox/web\"",
+    "build": "npm run build -w @larpbox/shared && npm run build -w @larpbox/web && npm run build -w @larpbox/server",
+    "start": "node apps/server/dist/index.js",
+    "typecheck": "npm run build -w @larpbox/shared && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^24.19.0",
+    "concurrently": "^10.0.5",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.1",
+    "prettier": "^3.9.9",
+    "socket.io-client": "^4.8.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^3.2.7"
+  }
+}

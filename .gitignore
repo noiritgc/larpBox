@@ -1,0 +1,34 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local environment (commit .env.example only)
+.env
+.env.*
+!.env.example
+
+# Test output
+playwright-report/
+test-results/
+blob-report/
+tests/e2e/screenshots/
+/screenshots/
+
+# Logs and caches
+*.log
+npm-debug.log*
+.eslintcache
+.vite/
+.cache/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Local Claude Code settings
+.claude/settings.local.json
+CLAUDE.local.md
