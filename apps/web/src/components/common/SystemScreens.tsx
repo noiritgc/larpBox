@@ -79,12 +79,20 @@ export function OutdatedScreen() {
 }
 
 /** Another tab holds this seat. Taking over is always a deliberate tap, never automatic. */
-export function SessionConflictOverlay({ onTakeOver, replaced }: { onTakeOver: () => void; replaced: boolean }) {
+export function SessionConflictOverlay({
+  onTakeOver,
+  replaced,
+  role = 'player',
+}: {
+  onTakeOver: () => void;
+  replaced: boolean;
+  role?: 'host' | 'player';
+}) {
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-labelledby="session-conflict-title" data-testid="session-conflict">
       <div className="card grid w-full max-w-[440px] gap-4 p-6">
         <h2 id="session-conflict-title" className="text-[26px] leading-tight">
-          This player is active in another tab.
+          {role === 'host' ? 'This big screen is open in another tab.' : 'This player is active in another tab.'}
         </h2>
         <p>
           {replaced

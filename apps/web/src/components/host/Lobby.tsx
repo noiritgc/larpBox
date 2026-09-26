@@ -16,12 +16,14 @@ import { SettingsFields } from './SettingsFields';
 function RosterRow({ player, onRemove }: { player: PublicPlayer; onRemove: () => void }) {
   return (
     <li className="host-roster-row enter" data-testid="roster-row">
-      <Avatar id={player.avatarId} size={52} decorative />
-      <div className="min-w-0">
+      <span className="roster-avatar">
+        <Avatar id={player.avatarId} size={52} decorative />
+      </span>
+      <div className="roster-text min-w-0">
         <p className="host-roster-name truncate">{player.name}</p>
         <p className="host-roster-headline truncate">{player.headline}</p>
       </div>
-      <span className="inline-flex items-center gap-2 font-semibold">
+      <span className="roster-status inline-flex items-center gap-2 font-semibold">
         {!player.connected ? (
           <>
             <span className="status-dot status-dot-off" aria-hidden="true" />
@@ -41,7 +43,7 @@ function RosterRow({ player, onRemove }: { player: PublicPlayer; onRemove: () =>
       </span>
       <button
         type="button"
-        className="btn btn-ghost btn-small"
+        className="roster-remove btn btn-ghost btn-small"
         onClick={onRemove}
         aria-label={`Remove ${player.name}`}
         title={`Remove ${player.name}`}

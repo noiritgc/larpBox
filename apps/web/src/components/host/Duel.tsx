@@ -1,7 +1,8 @@
 import type { HostView, PublicPlayer, Side } from '@larpbox/shared';
 import { CircleCheck } from 'lucide-react';
-import { formatClout, plural, signedClout } from '../../lib/format';
+import { formatClout, plural } from '../../lib/format';
 import { Avatar } from '../game/Avatar';
+import { CountUp } from '../game/CountUp';
 import { PostCard } from '../game/PostCard';
 import { sideStamp, Stamp } from '../game/Stamp';
 import { FactsList, TruthBanner } from '../game/TruthBanner';
@@ -23,7 +24,7 @@ function AnonymousPosts({ posts }: { posts: Screen<'DUEL_READ'>['posts'] }) {
 
 function ReadScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_READ'> }) {
   return (
-    <div className="host" data-testid="host-duel-read">
+    <div className="host host-fixed" data-testid="host-duel-read">
       <HostTopBar view={view} center={<DuelContext view={view} />} />
       <main className="host-main">
         <ScreenHeading className="host-heading">Two announcements. One very ordinary event.</ScreenHeading>
@@ -37,7 +38,7 @@ function ReadScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_REA
 
 function GuessScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_GUESS'> }) {
   return (
-    <div className="host" data-testid="host-duel-guess">
+    <div className="host host-fixed" data-testid="host-duel-guess">
       <HostTopBar view={view} center={<DuelContext view={view} />} />
       <main className="host-main">
         <ScrollArea>
@@ -68,13 +69,15 @@ function GuessScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_GU
 
 function EndorseScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_ENDORSE'> }) {
   return (
-    <div className="host" data-testid="host-duel-endorse">
+    <div className="host host-fixed" data-testid="host-duel-endorse">
       <HostTopBar view={view} center={<DuelContext view={view} />} />
       <main className="host-main">
         <ScrollArea>
           <div className="grid gap-[var(--host-gap)]">
-            <TruthBanner truth={screen.truth} size="host" />
-            <FactsList facts={screen.facts} boundaries={screen.boundaries} className="host-facts md:grid-cols-2" />
+            <div className="host-endorse-top">
+              <TruthBanner truth={screen.truth} size="host" />
+              <FactsList facts={screen.facts} boundaries={screen.boundaries} className="host-facts sm:grid-cols-2" />
+            </div>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="grid gap-1">
                 <ScreenHeading className="host-heading">Who made the most out of the least?</ScreenHeading>
@@ -98,7 +101,7 @@ function ResultScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_R
   const unfilled = result.stamp === 'UNFILLED';
   const guessers = result.correctGuesserIds.map((id) => byId.get(id)).filter((p): p is PublicPlayer => Boolean(p));
   return (
-    <div className="host" data-testid="host-duel-result">
+    <div className="host host-fixed" data-testid="host-duel-result">
       <HostTopBar view={view} center={<DuelContext view={view} />} />
       <main className="host-main">
         <ScrollArea>
@@ -142,7 +145,9 @@ function ResultScreen({ view, screen }: { view: HostView; screen: Screen<'DUEL_R
                         />
                         <p className="flex flex-wrap items-baseline gap-x-4 font-display font-bold" data-testid={`result-${side}`}>
                           <span className="text-[var(--host-score)]">{plural(outcome.votes, 'endorsement')}</span>
-                          <span className="text-[var(--host-score)] text-blue">{signedClout(outcome.points)} Clout</span>
+                          <span className="text-[var(--host-score)] text-blue">
+                            <CountUp value={outcome.points} prefix="+" suffix=" Clout" />
+                          </span>
                         </p>
                       </div>
                     );

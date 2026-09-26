@@ -43,24 +43,28 @@ export function HostFinal({ view }: { view: HostView }) {
   };
 
   return (
-    <div className="host" data-testid="host-final">
+    <div className="host host-fixed" data-testid="host-final">
       <Confetti burstId={view.phase.id} />
       <HostTopBar view={view} showTimer={false} center={<span>Final results · Room <strong>{view.roomCode}</strong></span>} />
       <main className="host-main">
         <ScrollArea>
           <div className="grid gap-[var(--host-gap)] xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <div className="grid content-start gap-[var(--host-gap)]">
-              <div className="grid gap-3">
-                <Stamp tone="yellow" size={28}>
-                  {joint ? 'Co-CEOs of Doing Nothing' : 'Chief Exaggeration Officer'}
-                </Stamp>
-                <ScreenHeading className="font-display text-[clamp(48px,calc(4px+4.5vw),104px)] leading-[0.95]">
-                  {winners.map((player) => player.name).join(' & ') || 'Nobody'}
-                </ScreenHeading>
-                <div className="flex flex-wrap gap-3">
-                  {winners.map((player) => (
-                    <Avatar key={player.id} id={player.avatarId} size={72} label={player.name} />
-                  ))}
+              <div className="grid gap-4">
+                <div className="mb-2">
+                  <Stamp tone="yellow" size={28}>
+                    {joint ? 'Co-CEOs of Doing Nothing' : 'Chief Exaggeration Officer'}
+                  </Stamp>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <span className="flex gap-2">
+                    {winners.map((player) => (
+                      <Avatar key={player.id} id={player.avatarId} size={72} label={player.name} />
+                    ))}
+                  </span>
+                  <ScreenHeading className="min-w-0 font-display text-[clamp(44px,calc(4px+4vw),96px)] leading-[0.95]">
+                    {winners.map((player) => player.name).join(' & ') || 'Nobody'}
+                  </ScreenHeading>
                 </div>
               </div>
               <Scoreboard rows={screen.rows} players={view.players} size="host" showGain={false} />
@@ -90,22 +94,22 @@ export function HostFinal({ view }: { view: HostView }) {
                   A room full of professionals. No endorsements.
                 </p>
               )}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Button variant="primary" onClick={() => setConfirmRematch(true)} icon={<RotateCcw size={22} aria-hidden="true" />} data-testid="play-again">
-                  Play again
-                </Button>
-                <Button onClick={() => setConfirmClose(true)} icon={<Power size={22} aria-hidden="true" />}>
-                  Close room
-                </Button>
-              </div>
-              {error ? (
-                <p className="field-error" role="alert">
-                  {error}
-                </p>
-              ) : null}
             </div>
           </div>
         </ScrollArea>
+        <footer className="flex flex-wrap items-center justify-end gap-3 border-t-2 border-ink pt-[var(--host-gap)]">
+          {error ? (
+            <p className="field-error mr-auto" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <Button onClick={() => setConfirmClose(true)} icon={<Power size={22} aria-hidden="true" />}>
+            Close room
+          </Button>
+          <Button variant="primary" onClick={() => setConfirmRematch(true)} icon={<RotateCcw size={22} aria-hidden="true" />} className="min-w-[220px]" data-testid="play-again">
+            Play again
+          </Button>
+        </footer>
       </main>
       <Modal open={confirmRematch} title="Return everyone to the lobby?" onClose={() => setConfirmRematch(false)}>
         <p>Scores will reset. Anyone who is offline right now will be removed from the room.</p>
