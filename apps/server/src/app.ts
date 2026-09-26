@@ -87,7 +87,15 @@ export function createService(options: ServiceOptions): LarpboxService {
   if (options.newId) engineOptions.newId = options.newId;
   const engine = new GameEngine(engineOptions);
   const limiters = createRateLimiters(systemClock, config.rateLimitMultiplier);
-  const originPolicy = createOriginPolicy(config.allowedOrigins);
+  const originPolicy = createOriginPolicy({
+    allowedOrigins: config.allowedOrigins,
+    allowLocalNetwork: config.nodeEnv === 'development',
+    onRejected: (origin) =>
+      logger.warn(
+        { origin, fix: `Add ${origin} to ALLOWED_ORIGINS, and use it as PUBLIC_ORIGIN if phones should scan QR codes for it.` },
+        'origin.rejected',
+      ),
+  });
   const clientIp = createIpResolver(config.trustProxy);
 
   const app = express();
@@ -116,6 +124,7 @@ export function createService(options: ServiceOptions): LarpboxService {
       originPolicy,
       clientIp: (req: Request) => clientIp(req),
       version: config.version,
+      verboseErrors: config.nodeEnv === 'development',
       isShuttingDown: () => shuttingDown,
     }),
   );

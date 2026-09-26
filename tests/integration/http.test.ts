@@ -100,6 +100,22 @@ describe('HTTP bootstrap API', () => {
     expect(good.status).toBe(201);
   });
 
+  it('accepts local-network origins in development with an actionable error for others', async () => {
+    server = await startServer({ nodeEnv: 'development', allowedOrigins: ['http://localhost:5173'] });
+    const body = () => ({ createRequestId: randomUUID(), settings: DEFAULT_SETTINGS });
+    const lan = await api(server, 'POST', '/api/rooms', body(), { origin: 'http://10.104.218.84:5173' });
+    expect(lan.status).toBe(201);
+    const foreign = await api(server, 'POST', '/api/rooms', body(), { origin: 'https://evil.example' });
+    expect(foreign.status).toBe(403);
+    expect(foreign.body.error?.message).toContain('https://evil.example');
+    expect(foreign.body.error?.message).toContain('ALLOWED_ORIGINS');
+    await server.close();
+    server = await startServer({ nodeEnv: 'production', allowedOrigins: ['http://larpbox.test'] });
+    const strict = await api(server, 'POST', '/api/rooms', body(), { origin: 'http://10.104.218.84:5173' });
+    expect(strict.status).toBe(403);
+    expect(strict.body.error?.message).not.toContain('10.104.218.84');
+  });
+
   it('returns structured errors for malformed and oversized bodies and unknown routes', async () => {
     server = await startServer();
     const malformed = await api(server, 'POST', '/api/rooms', '{"createRequestId":');

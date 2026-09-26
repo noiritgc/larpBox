@@ -20,6 +20,8 @@ export interface RouteDeps {
   originPolicy: OriginPolicy;
   clientIp: (req: Request) => string;
   version: string;
+  /** Development: origin errors name the origin and the setting to change. */
+  verboseErrors: boolean;
   /** True once shutdown has begun: no new rooms. */
   isShuttingDown: () => boolean;
 }
@@ -55,7 +57,7 @@ export function createApiRouter(deps: RouteDeps): Router {
 
   router.post(
     '/rooms',
-    requireAllowedOrigin(originPolicy),
+    requireAllowedOrigin(originPolicy, { verbose: deps.verboseErrors }),
     rateLimit(limiters.create, clientIp),
     (req, res, next) => {
       if (deps.isShuttingDown()) {
@@ -93,7 +95,7 @@ export function createApiRouter(deps: RouteDeps): Router {
 
   router.post(
     '/rooms/:code/players',
-    requireAllowedOrigin(originPolicy),
+    requireAllowedOrigin(originPolicy, { verbose: deps.verboseErrors }),
     rateLimit(limiters.join, clientIp),
     (req, res, next) => {
       const code = normalizeRoomCode(String(req.params.code));

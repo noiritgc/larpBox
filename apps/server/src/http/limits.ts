@@ -16,13 +16,23 @@ export function rateLimit(limiter: TokenBucketLimiter, clientIp: (req: Parameter
   };
 }
 
-/** Rejects cross-origin browser mutations. Requests without an Origin header pass. */
-export function requireAllowedOrigin(policy: OriginPolicy): RequestHandler {
+/**
+ * Rejects cross-origin browser mutations. Requests without an Origin header pass. In development
+ * the message names the origin and the setting to change; in production it stays generic.
+ */
+export function requireAllowedOrigin(policy: OriginPolicy, options: { verbose: boolean }): RequestHandler {
   return (req, res, next) => {
-    if (policy.isAllowed(req.headers.origin)) {
+    const origin = req.headers.origin;
+    if (policy.isAllowed(origin)) {
       next();
       return;
     }
-    sendApiError(res, 'FORBIDDEN', 'This page is not allowed to create or join rooms here.');
+    sendApiError(
+      res,
+      'FORBIDDEN',
+      options.verbose
+        ? `This address (${origin}) isn't allowed to reach the game server. Add it to ALLOWED_ORIGINS in .env (and use it as PUBLIC_ORIGIN so QR codes point here), then restart the server.`
+        : "This page's address isn't allowed to reach the game server. Ask the host to check the server's PUBLIC_ORIGIN and ALLOWED_ORIGINS settings.",
+    );
   };
 }

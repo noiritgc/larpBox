@@ -70,6 +70,15 @@ export function HostLobby({ view }: { view: HostView }) {
       return '/join';
     }
   })();
+  // A localhost join link can't be opened by any phone: tell the operator how to fix it.
+  const joinLinkIsLocalOnly = (() => {
+    try {
+      const host = new URL(view.joinUrl).hostname;
+      return host === 'localhost' || host === '[::1]' || host.startsWith('127.');
+    } catch {
+      return false;
+    }
+  })();
   const players = view.players;
   const openSeats = Math.max(0, MAX_PLAYERS - players.length);
   const minutes = estimateGameMinutes(view.settings, Math.max(MIN_PLAYERS, players.length));
@@ -151,6 +160,11 @@ export function HostLobby({ view }: { view: HostView }) {
               {copyState === 'copied' ? 'Link copied' : 'Copy join link'}
             </Button>
           </div>
+          {joinLinkIsLocalOnly ? (
+            <StatusBanner tone="yellow" icon="warning">
+              This link only works on this computer. To let phones join, set PUBLIC_ORIGIN to this computer's network address and restart the server.
+            </StatusBanner>
+          ) : null}
           {copyState === 'failed' ? (
             <label className="grid w-full gap-1">
               <span className="inline-flex items-center gap-2 font-semibold">
