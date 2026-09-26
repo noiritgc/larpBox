@@ -76,6 +76,36 @@ Verified (`npx vitest run`: 146 tests passed):
   author IDs before RESULT, no wrong guessers or ballots ever, no tokens, hashes, seed, prompt IDs
   or unused pack content). A deliberately planted leak made these tests fail.
 
+## Milestone 3 — actual multiplayer: done
+
+- HTTP: `POST /api/rooms`, `GET /api/rooms/:code`, `POST /api/rooms/:code/players`, `/api/health`.
+  Strict Zod bodies, 8 KiB JSON limit, two-minute idempotent responses, per-IP token buckets,
+  browser-origin enforcement for mutations, and `trust proxy` driven client IPs.
+- Socket.IO: handshake authentication (protocol, room, token hash, role, revocation) with
+  structured `connect_error` data, `allowRequest` origin check, one active socket per session with
+  explicit takeover (`SESSION_IN_USE`, `session:replaced`), connection generations, the command
+  pipeline in spec order, per-session and per-assignment rate limits, `state:request`,
+  `clock:ping`, and individually projected `room:state` snapshots (no shared broadcasts).
+  `maxHttpBufferSize` 16 KiB, ping 25s/20s, `serveClient` false, recovery disabled.
+- Web client: all routes (`/`, `/host/new`, `/host/:code`, `/join`, `/join/:code`,
+  `/play/:code`, `/help`, 404, dev-only `/dev`), the full phone controller and host display for
+  every phase, pause overlay, host menu, session-conflict/ended/unauthorized screens, credential
+  and draft storage with memory fallback, autosave with revision rebasing, lock-after-save,
+  ack-timeout retries only while connected, and clock-offset countdowns.
+
+Verified:
+
+- `npx vitest run`: 172 tests passed (engine, projections, config, content, text, 10 HTTP
+  integration tests, 16 Socket.IO integration tests with real clients, including full 3- and
+  5-player games, lost-ack retry, takeover, role lanes, room isolation, malformed/oversized/
+  flooded commands).
+- `npx playwright test tests/e2e/completeGame.spec.ts` (production build, `GAME_TIME_SCALE=0.2`,
+  separate browser contexts per device): a 3-player Standard game through final results and a
+  rematch, and a 5-player Quick game where the host showed post-offs 1–5 of 5. No uncaught page
+  errors.
+- Screenshots of every phase at 1920×1080 and 390×844 reviewed; fixed a rotated truth banner that
+  overlapped content, host overlay sizing, and toolbar button wrapping.
+
 ## Deviations from the spec
 
 - ESLint 10 instead of 9: ESLint 9 is marked unsupported by its maintainers; the spec does not pin a
@@ -92,4 +122,4 @@ Verified (`npx vitest run`: 146 tests passed):
 
 ## Remaining work
 
-Milestones 3–6.
+Milestones 4–6.
