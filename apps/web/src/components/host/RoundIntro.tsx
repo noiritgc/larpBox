@@ -16,7 +16,7 @@ export function HostRoundIntro({ view }: { view: HostView }) {
           {screen.roundNumber}
         </p>
         <ScreenHeading className="host-heading enter">
-          Round {screen.roundNumber} — {screen.title}.
+          Round {screen.roundNumber}: {screen.title}.
         </ScreenHeading>
         {screen.multiplier === 2 ? (
           <span className="pill-yellow stamp-in text-[clamp(22px,calc(6px+1.25vw),34px)]" style={{ transform: 'rotate(-3deg)' }}>

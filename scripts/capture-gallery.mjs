@@ -39,7 +39,7 @@ for (const id of ids) {
     const page = await context.newPage();
     page.on('pageerror', (error) => problems.push(`${id}@${width}x${height}: ${error.message}`));
     await page.goto(`${base}/dev?s=${id}`);
-    await page.getByText('LOCAL PREVIEW — NOT A LIVE GAME').waitFor();
+    await page.getByText('LOCAL PREVIEW: NOT A LIVE GAME').waitFor();
     if (zoom !== 1) await page.evaluate((factor) => (document.documentElement.style.fontSize = `${factor * 100}%`), zoom);
     await page.waitForTimeout(300);
     if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) {

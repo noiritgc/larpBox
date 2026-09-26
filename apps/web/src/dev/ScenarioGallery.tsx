@@ -241,7 +241,7 @@ const ALL = [...hostScenarios, ...phoneScenarios];
 function PreviewBadge() {
   return (
     <p className="pill-yellow pointer-events-none fixed bottom-3 left-3 z-[60] text-[14px] shadow-[3px_3px_0_var(--ink)]" role="note">
-      LOCAL PREVIEW — NOT A LIVE GAME
+      LOCAL PREVIEW: NOT A LIVE GAME
     </p>
   );
 }
@@ -259,7 +259,7 @@ export default function ScenarioGallery() {
   }
   return (
     <main className="mx-auto grid max-w-[900px] gap-6 p-6">
-      <p className="pill-yellow self-start">LOCAL PREVIEW — NOT A LIVE GAME</p>
+      <p className="pill-yellow self-start">LOCAL PREVIEW: NOT A LIVE GAME</p>
       <h1 className="text-[36px]">Scenario gallery</h1>
       <p>Fixture screens for design review. Nothing here connects to a room.</p>
       {[

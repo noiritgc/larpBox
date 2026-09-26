@@ -22,7 +22,7 @@ function saveStatusText(status: SaveStatus, connected: boolean): string {
     case 'paused':
       return 'Saved on this phone while paused';
     case 'error':
-      return "Couldn't save—retry";
+      return "Couldn't save. Will retry as you type.";
     default:
       return '';
   }
